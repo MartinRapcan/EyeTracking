@@ -1,1 +1,1 @@
-result_3d = detector_3d.update_and_detect(result_2d, grayscale_array)
+img.shape[1]
