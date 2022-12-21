@@ -9,7 +9,6 @@ import re
 from PySide6.QtCore import Qt
 from pyqt_frameless_window import FramelessMainWindow
 from tkinter import *
-import qdarktheme
 from ctypes import windll
 from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtUiTools import QUiLoader
@@ -117,12 +116,12 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget = loader.load(ui)
         ui.close()
         self.setWindowTitle('Eye Tracking')
-        self.setWindowIcon('public/icon.png')
-        mainWidget = self.centralWidget()
-        lay = mainWidget.layout()
+        self.setWindowIcon('public/light.png')
+        self.mainWidget = self.centralWidget()
+        lay = self.mainWidget.layout()
         lay.addWidget(self.__testWidget)
-        mainWidget.setLayout(lay)
-        self.setCentralWidget(mainWidget)
+        self.mainWidget.setLayout(lay)
+        self.setCentralWidget(self.mainWidget)
         self.setGeometry(200, 50, 1100, 735)
         self.setFixedSize(1100, 730)
         titleBar = self.getTitleBar()
@@ -130,10 +129,31 @@ class MainWindow(FramelessMainWindow):
         #print(dir(titleBar))
         #print(titleBar.children())
         # use findchildren to find QPushButtons
-        #for button in titleBar.findChildren(QPushButton):
-        #    button.setStyleSheet("QPushButton {background-color: #90cdf4; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #3182ce; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #3182ce; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
-
+        for button in titleBar.findChildren(QPushButton):
+            button.setStyleSheet("QPushButton {background-color: #90cdf4; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #3182ce; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #3182ce; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
+        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 15px}")
+        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 5px}")
         self.__testWidget.slide.hide()
+        self.image = None
+        self.screenShot = None
+        self.__testWidget.startButton.clicked.connect(self.startWebcam)
+        self.__testWidget.stopButton.clicked.connect(self.stopWebcam)
+        self.__testWidget.loadImage.clicked.connect(self.loadImage)
+        self.__testWidget.removeImage.clicked.connect(self.removeImage)
+        self.__testWidget.slideShow.clicked.connect(self.slideShow)
+        # hide widget for now
+        self.__testWidget.slide.hide()
+        #self.window.previous.hide()
+        #self.window.previous.clicked.connect(self.previousImage)
+        self.__testWidget.next.hide()
+        self.__testWidget.next.clicked.connect(self.nextImage)
+        self.__testWidget.end.hide()
+        self.__testWidget.end.clicked.connect(self.endSlideShow)
+        # self.position = self.centralWidget().frameGeometry()
+        # self.imagePosition = self.__testWidget.image.frameGeometry()
+        # get window position
+        self.position = self.frameGeometry()
+
     # def __init__(self):
     #     super().__init__()
     #     self.loader = QUiLoader()
@@ -169,27 +189,27 @@ class MainWindow(FramelessMainWindow):
         imageName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
         if not self.images.get(imageName):
             self.images[imageName] = QtGui.QImage(fname[0])
-            self.window.listImages.addItem(imageName)
+            self.__testWidget.listImages.addItem(imageName)
 
     def removeImage(self):
-        if self.window.listImages.currentItem():
-            self.images.pop(self.window.listImages.currentItem().text())
-            self.window.listImages.takeItem(self.window.listImages.currentRow())
+        if self.__testWidget.listImages.currentItem():
+            self.images.pop(self.__testWidget.listImages.currentItem().text())
+            self.__testWidget.listImages.takeItem(self.__testWidget.listImages.currentRow())
 
     def slideShow(self):
-        if self.window.listImages.count() > 0:
-            self.window.slide.show()
-            self.imageB = self.window.listImages.item(0).text()
-            self.window.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
-            if self.window.listImages.count() > 1:
-                self.window.next.show()
+        if self.__testWidget.listImages.count() > 0:
+            self.__testWidget.slide.show()
+            self.imageB = self.__testWidget.listImages.item(0).text()
+            self.__testWidget.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
+            if self.__testWidget.listImages.count() > 1:
+                self.__testWidget.next.show()
             else:
-                self.window.end.show()
+                self.__testWidget.end.show()
 
     def endSlideShow(self):
-        self.window.slide.hide()
-        self.window.next.hide()
-        self.window.end.hide()
+        self.__testWidget.slide.hide()
+        self.__testWidget.next.hide()
+        self.__testWidget.end.hide()
 
 
     def previousImage(self):
@@ -198,13 +218,13 @@ class MainWindow(FramelessMainWindow):
     def nextImage(self):
         if self.imageB != list(self.images.keys())[-1]:
             self.imageB = list(self.images.keys())[list(self.images.keys()).index(self.imageB) + 1]
-            self.window.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
+            self.__testWidget.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
             if self.imageB == list(self.images.keys())[-1]:
-                self.window.next.hide()
-                self.window.end.show()
+                self.__testWidget.next.hide()
+                self.__testWidget.end.show()
         else:
-            self.window.next.hide()
-            self.window.end.show()
+            self.__testWidget.next.hide()
+            self.__testWidget.end.show()
 
     def startWebcam(self):
         #self.startScreen()
@@ -217,7 +237,8 @@ class MainWindow(FramelessMainWindow):
         self.timerWeb.start(5)
 
     def update_frame(self):
-        self.position = self.window.frameGeometry()
+        #self.position = self.centralWidget().frameGeometry()
+        self.position = self.frameGeometry()
         ret, self.image = self.captureWeb.read()
         frame_number = self.captureWeb.get(cv2.CAP_PROP_POS_FRAMES)
         fps = self.captureWeb.get(cv2.CAP_PROP_FPS)
@@ -251,11 +272,12 @@ class MainWindow(FramelessMainWindow):
             # print text on image
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(self.image, f'Angle: {self.angle}', (5, 30), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-            cv2.putText(self.image, f"Position: {self.position.getCoords()}", (5, 50), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-            x = self.position.getCoords()[0]
-            y = self.position.getCoords()[1]
-            newCoords = (self.imagePosition.getCoords()[0] + x, self.imagePosition.getCoords()[1] + y, self.imagePosition.getCoords()[2] + x, self.imagePosition.getCoords()[3] + y)
-            print(f"Position: {newCoords}")            
+            # cv2.putText(self.image, f"Position: {self.position.getCoords()}", (5, 50), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+            # x = self.position.getCoords()[0]
+            # y = self.position.getCoords()[1]
+            # newCoords = (self.imagePosition.getCoords()[0] + x, self.imagePosition.getCoords()[1] + y, self.imagePosition.getCoords()[2] + x, self.imagePosition.getCoords()[3] + y)
+            # print(f"Position: {newCoords}")  
+            print(f"Position: {self.position.getCoords()}")   # 30 pixelov na title bar       
 
         self.displayImage(self.image, 1)
 
@@ -276,8 +298,8 @@ class MainWindow(FramelessMainWindow):
         outImage = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], qformat)
         outImage = outImage.rgbSwapped()
         if window == 1:
-            self.window.imgLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
-            self.window.imgLabel.setScaledContents(True)
+            self.__testWidget.imgLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
+            self.__testWidget.imgLabel.setScaledContents(True)
 
     # def startScreen(self):
     #     # self.captureScreen = cv2.VideoCapture("data/train_img.mp4")
@@ -316,20 +338,8 @@ class MainWindow(FramelessMainWindow):
     #     self.displayScreen(frame, 2)
 
 if __name__ == "__main__":
-    qdarktheme.enable_hi_dpi()
     app = QtWidgets.QApplication(sys.argv)
-    qdarktheme.setup_theme(
-        custom_colors={
-            "[dark]": {
-                "primary": "#90cdf4",
-                "background": "#171923",
-            },
-            "[light]": {
-                "primary": "#FF00FF",
-                "background": "#F7FAFC",
-            },
-        }, theme="light"
-    )
+    app.setStyleSheet("QMainWindow {background: '#171923';}")
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
