@@ -186,16 +186,18 @@ class MainWindow(FramelessMainWindow):
 
     def loadImage(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.gif *.png *.jpeg)")
-        imageName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
-        if not self.images.get(imageName):
-            self.images[imageName] = QtGui.QImage(fname[0])
-            self.__testWidget.listImages.addItem(imageName)
+        if fname[0] != "":
+            imageName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
+            if not self.images.get(imageName):
+                self.images[imageName] = QtGui.QImage(fname[0])
+                self.__testWidget.listImages.addItem(imageName)
 
     def removeImage(self):
         if self.__testWidget.listImages.currentItem():
             self.images.pop(self.__testWidget.listImages.currentItem().text())
             self.__testWidget.listImages.takeItem(self.__testWidget.listImages.currentRow())
 
+    # TODO: hide main window and show slide show window 
     def slideShow(self):
         if self.__testWidget.listImages.count() > 0:
             self.__testWidget.slide.show()
@@ -237,7 +239,6 @@ class MainWindow(FramelessMainWindow):
         self.timerWeb.start(5)
 
     def update_frame(self):
-        #self.position = self.centralWidget().frameGeometry()
         self.position = self.frameGeometry()
         ret, self.image = self.captureWeb.read()
         frame_number = self.captureWeb.get(cv2.CAP_PROP_POS_FRAMES)
@@ -273,12 +274,11 @@ class MainWindow(FramelessMainWindow):
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(self.image, f'Angle: {self.angle}', (5, 30), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
             # cv2.putText(self.image, f"Position: {self.position.getCoords()}", (5, 50), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-            # x = self.position.getCoords()[0]
-            # y = self.position.getCoords()[1]
-            # newCoords = (self.imagePosition.getCoords()[0] + x, self.imagePosition.getCoords()[1] + y, self.imagePosition.getCoords()[2] + x, self.imagePosition.getCoords()[3] + y)
-            # print(f"Position: {newCoords}")  
-            print(f"Position: {self.position.getCoords()}")   # 30 pixelov na title bar       
-
+        x = self.position.getCoords()[0]
+        y = self.position.getCoords()[1]
+        newCoords = (self.__testWidget.image.geometry().getCoords()[0] + x, self.__testWidget.image.geometry().getCoords()[1] + y, self.__testWidget.image.geometry().getCoords()[2] + x, self.__testWidget.image.geometry().getCoords()[3] + y)
+        #print(f"Position: {self.position.getCoords()}")   # 30 pixelov na title bar       
+        print(f"Position: {newCoords}")
         self.displayImage(self.image, 1)
 
     def stopWebcam(self):
