@@ -276,7 +276,7 @@ class MainWindow(FramelessMainWindow):
             # cv2.putText(self.image, f"Position: {self.position.getCoords()}", (5, 50), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
         x = self.position.getCoords()[0]
         y = self.position.getCoords()[1]
-        newCoords = (self.__testWidget.image.geometry().getCoords()[0] + x, self.__testWidget.image.geometry().getCoords()[1] + y, self.__testWidget.image.geometry().getCoords()[2] + x, self.__testWidget.image.geometry().getCoords()[3] + y)
+        newCoords = (self.__testWidget.image.geometry().getCoords()[0] + x, self.__testWidget.image.geometry().getCoords()[1] + y + 30, self.__testWidget.image.geometry().getCoords()[2] + x, self.__testWidget.image.geometry().getCoords()[3] + y + 30)
         #print(f"Position: {self.position.getCoords()}")   # 30 pixelov na title bar       
         print(f"Position: {newCoords}")
         self.displayImage(self.image, 1)
