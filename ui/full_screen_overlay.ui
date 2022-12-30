@@ -22,7 +22,7 @@ background-color: #171923;
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0">
      <item row="0" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,10,2,1">
+      <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,12,2,1">
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">

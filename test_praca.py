@@ -135,6 +135,7 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.loadImage.clicked.connect(self.loadImage)
         self.__testWidget.removeImage.clicked.connect(self.removeImage)
         self.__testWidget.slideShow.clicked.connect(self.slideShow)
+        self.overlay = None
 
     def loadImage(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.gif *.png *.jpeg)")
@@ -233,7 +234,7 @@ class MainWindow(FramelessMainWindow):
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(self.image, f'Angle: {self.angle}', (5, 30), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
             self.displayImage(self.image, 1)
-            #cv2.waitKey(30)
+            cv2.waitKey(15)
         else:
             self.stopWebcam()
 
