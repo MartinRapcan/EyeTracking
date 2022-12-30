@@ -102,18 +102,14 @@ class MainWindow(FramelessMainWindow):
     images = {}
     imageB = None
     angle = 0
-    topLeft = 80
-    topRight = 70
-    bottomLeft = 130
-    bottomRight = 120
+    loader = QUiLoader()
 
     def __init__(self):
         super().__init__()
         self.__testWidget = QWidget()
-        loader = QUiLoader()
         ui = QFile("ui/test.ui")
         ui.open(QFile.ReadOnly)
-        self.__testWidget = loader.load(ui)
+        self.__testWidget = self.loader.load(ui)
         ui.close()
         self.setWindowTitle('Eye Tracking')
         self.setWindowIcon('public/light.png')
@@ -133,56 +129,12 @@ class MainWindow(FramelessMainWindow):
             button.setStyleSheet("QPushButton {background-color: #90cdf4; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #3182ce; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #3182ce; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 15px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 5px}")
-        self.__testWidget.slide.hide()
         self.image = None
-        self.screenShot = None
         self.__testWidget.startButton.clicked.connect(self.startWebcam)
         self.__testWidget.stopButton.clicked.connect(self.stopWebcam)
         self.__testWidget.loadImage.clicked.connect(self.loadImage)
         self.__testWidget.removeImage.clicked.connect(self.removeImage)
         self.__testWidget.slideShow.clicked.connect(self.slideShow)
-        # hide widget for now
-        self.__testWidget.slide.hide()
-        #self.window.previous.hide()
-        #self.window.previous.clicked.connect(self.previousImage)
-        self.__testWidget.next.hide()
-        self.__testWidget.next.clicked.connect(self.nextImage)
-        self.__testWidget.end.hide()
-        self.__testWidget.end.clicked.connect(self.endSlideShow)
-        # self.position = self.centralWidget().frameGeometry()
-        # self.imagePosition = self.__testWidget.image.frameGeometry()
-        # get window position
-        self.position = self.frameGeometry()
-
-    # def __init__(self):
-    #     super().__init__()
-    #     self.loader = QUiLoader()
-    #     self.ui = QFile("ui/main.ui")
-    #     self.ui.open(QFile.ReadOnly)
-    #     self.window = self.loader.load(self.ui)
-    #     self.ui.close()
-    #     self.window.setGeometry(200, 50, 1100, 700)
-    #     self.window.setFixedSize(1100, 700)
-    #     self.window.setWindowTitle("Eye Tracking Platform")
-    #     self.window.setWindowIcon(QtGui.QIcon("public/icon.png"))
-    #     self.window.show()
-    #     self.image = None
-    #     self.screenShot = None
-    #     self.window.startButton.clicked.connect(self.startWebcam)
-    #     self.window.stopButton.clicked.connect(self.stopWebcam)
-    #     self.window.loadImage.clicked.connect(self.loadImage)
-    #     self.window.removeImage.clicked.connect(self.removeImage)
-    #     self.window.slideShow.clicked.connect(self.slideShow)
-    #     # hide widget for now
-    #     self.window.slide.hide()
-    #     #self.window.previous.hide()
-    #     #self.window.previous.clicked.connect(self.previousImage)
-    #     self.window.next.hide()
-    #     self.window.next.clicked.connect(self.nextImage)
-    #     self.window.end.hide()
-    #     self.window.end.clicked.connect(self.endSlideShow)
-    #     self.position = self.window.frameGeometry()
-    #     self.imagePosition = self.window.image.frameGeometry()
 
     def loadImage(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.gif *.png *.jpeg)")
@@ -197,22 +149,31 @@ class MainWindow(FramelessMainWindow):
             self.images.pop(self.__testWidget.listImages.currentItem().text())
             self.__testWidget.listImages.takeItem(self.__testWidget.listImages.currentRow())
 
-    # TODO: hide main window and show slide show window 
     def slideShow(self):
         if self.__testWidget.listImages.count() > 0:
-            self.__testWidget.slide.show()
-            self.imageB = self.__testWidget.listImages.item(0).text()
-            self.__testWidget.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
+            ui = QFile("ui/full_screen_overlay.ui")
+            ui.open(QFile.ReadOnly)
+            self.overlay = self.loader.load(ui)
+            ui.close()
             if self.__testWidget.listImages.count() > 1:
-                self.__testWidget.next.show()
+                self.overlay.next.show()
+                self.overlay.end.hide()
             else:
-                self.__testWidget.end.show()
+                self.overlay.next.hide()
+                self.overlay.end.show()
+            self.overlay.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+            self.overlay.showFullScreen()
+            self.overlay.marker.setPixmap(QtGui.QPixmap("public/marker.png").scaled(80, 80, QtCore.Qt.KeepAspectRatio))
+            self.overlay.next.clicked.connect(self.nextImage)
+            self.overlay.end.clicked.connect(self.endSlideShow)
+
+            self.imageB = self.__testWidget.listImages.item(0).text()
+            self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio))
+     
+
 
     def endSlideShow(self):
-        self.__testWidget.slide.hide()
-        self.__testWidget.next.hide()
-        self.__testWidget.end.hide()
-
+        self.overlay.close()
 
     def previousImage(self):
         pass
@@ -220,13 +181,13 @@ class MainWindow(FramelessMainWindow):
     def nextImage(self):
         if self.imageB != list(self.images.keys())[-1]:
             self.imageB = list(self.images.keys())[list(self.images.keys()).index(self.imageB) + 1]
-            self.__testWidget.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
+            self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio))
             if self.imageB == list(self.images.keys())[-1]:
-                self.__testWidget.next.hide()
-                self.__testWidget.end.show()
+                self.overlay.next.hide()
+                self.overlay.end.show()
         else:
-            self.__testWidget.next.hide()
-            self.__testWidget.end.show()
+            self.overlay.next.hide()
+            self.overlay.end.show()
 
     def startWebcam(self):
         #self.startScreen()
@@ -239,7 +200,6 @@ class MainWindow(FramelessMainWindow):
         self.timerWeb.start(5)
 
     def update_frame(self):
-        self.position = self.frameGeometry()
         ret, self.image = self.captureWeb.read()
         frame_number = self.captureWeb.get(cv2.CAP_PROP_POS_FRAMES)
         fps = self.captureWeb.get(cv2.CAP_PROP_FPS)
@@ -270,21 +230,16 @@ class MainWindow(FramelessMainWindow):
                 thickness=-2,
             )
 
-            # print text on image
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(self.image, f'Angle: {self.angle}', (5, 30), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-            # cv2.putText(self.image, f"Position: {self.position.getCoords()}", (5, 50), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-        x = self.position.getCoords()[0]
-        y = self.position.getCoords()[1]
-        newCoords = (self.__testWidget.image.geometry().getCoords()[0] + x, self.__testWidget.image.geometry().getCoords()[1] + y + 30, self.__testWidget.image.geometry().getCoords()[2] + x, self.__testWidget.image.geometry().getCoords()[3] + y + 30)
-        #print(f"Position: {self.position.getCoords()}")   # 30 pixelov na title bar       
-        print(f"Position: {newCoords}")
-        self.displayImage(self.image, 1)
+            self.displayImage(self.image, 1)
+            #cv2.waitKey(30)
+        else:
+            self.stopWebcam()
 
     def stopWebcam(self):
-        if self.timerWeb.isActive(): #and self.timerScreen.isActive():
+        if self.timerWeb.isActive():
             self.timerWeb.stop()
-            #self.timerScreen.stop()
 
     def displayImage(self, img, window=1):
         qformat = QtGui.QImage.Format_Indexed8
@@ -301,41 +256,11 @@ class MainWindow(FramelessMainWindow):
             self.__testWidget.imgLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
             self.__testWidget.imgLabel.setScaledContents(True)
 
-    # def startScreen(self):
-    #     # self.captureScreen = cv2.VideoCapture("data/train_img.mp4")
-    #     # self.captureScreen.set(cv2.CAP_PROP_FRAME_WIDTH, 370)
-    #     # self.captureScreen.set(cv2.CAP_PROP_FRAME_HEIGHT, 260)
-    #     self.timerScreen = QtCore.QTimer()
-    #     self.timerScreen.timeout.connect(self.updateScreen)
-    #     self.timerScreen.start(5)
-
-    # def displayScreen(self, img, window=1):
-
-    #     if len(img.shape) == 3:
-    #         if img.shape[2] == 4:
-    #             qformat = QtGui.QImage.Format_RGBA8888
-    #         else:
-    #             qformat = QtGui.QImage.Format_RGB888
-
-    #     outImage = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], qformat)
-    #     outImage = outImage.rgbSwapped()
-    #     if window == 2:
-    #         self.window.screenLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
-    #         self.window.screenLabel.setScaledContents(True)
-
-    # def updateScreen(self):
-    #     self.screenShot = pyautogui.screenshot()
-    #     frame = np.array(self.screenShot)
-    #     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    #     cv2.circle(
-    #         frame,
-    #         (frame.shape[1] // 2, frame.shape[0] // 2),
-    #         15,
-    #         (0, 0, 255),  # color (BGR): blue
-    #         thickness=2,
-    #     )
-
-    #     self.displayScreen(frame, 2)
+        
+    def closeEvent(self, event):
+        if self.overlay:
+            self.overlay.close()
+        event.accept()
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
@@ -350,3 +275,6 @@ if __name__ == "__main__":
 
 # využiť angle .. ktorý je v 3D detektori
 # skusiť vytvoriť vektor z 3D detekcie a zistiť jeho smer
+
+# TODO: kalibracia a validacia
+# TODO: spraviť nejake opatrenie ked je otvoreny overlay aby nenastala nejaka šarapata keby sa vymazalo nieco z obrazku
