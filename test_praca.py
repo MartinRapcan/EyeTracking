@@ -103,9 +103,17 @@ class MainWindow(FramelessMainWindow):
     imageB = None
     angle = 0
     loader = QUiLoader()
+    videoPath = None
+    isPaused = False
 
     def __init__(self):
         super().__init__()
+
+        self.captureWeb = cv2.VideoCapture(0)
+        self.captureWeb.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        self.captureWeb.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        self.captureWeb.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+
         self.__testWidget = QWidget()
         ui = QFile("ui/test.ui")
         ui.open(QFile.ReadOnly)
@@ -135,6 +143,7 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.loadImage.clicked.connect(self.loadImage)
         self.__testWidget.removeImage.clicked.connect(self.removeImage)
         self.__testWidget.slideShow.clicked.connect(self.slideShow)
+        self.__testWidget.videoPicker.clicked.connect(self.videoPicker)
         self.overlay = None
 
     def loadImage(self):
@@ -144,6 +153,13 @@ class MainWindow(FramelessMainWindow):
             if not self.images.get(imageName):
                 self.images[imageName] = QtGui.QImage(fname[0])
                 self.__testWidget.listImages.addItem(imageName)
+
+    def videoPicker(self):
+        fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Video files (*.mp4 *.avi *.mov *.mkv)")
+        if fname[0] != "":
+            videoName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
+            self.videoPath = fname[0]
+            self.__testWidget.videoPath.setText(videoName)
 
     def removeImage(self):
         if self.__testWidget.listImages.currentItem():
@@ -191,10 +207,8 @@ class MainWindow(FramelessMainWindow):
             self.overlay.end.show()
 
     def startWebcam(self):
-        #self.startScreen()
-        self.captureWeb = cv2.VideoCapture("data/train_img.mp4")
-        self.captureWeb.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.captureWeb.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        if self.videoPath:
+            self.captureWeb.open(self.videoPath)
 
         self.timerWeb = QtCore.QTimer()
         self.timerWeb.timeout.connect(self.update_frame)
@@ -205,7 +219,7 @@ class MainWindow(FramelessMainWindow):
         frame_number = self.captureWeb.get(cv2.CAP_PROP_POS_FRAMES)
         fps = self.captureWeb.get(cv2.CAP_PROP_FPS)
 
-        if ret:
+        if ret and not self.isPaused:
             grayscale_array = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
             result_2d = self.detector_2d.detect(grayscale_array)
             result_2d["timestamp"] = frame_number / fps
