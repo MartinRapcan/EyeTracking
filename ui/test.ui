@@ -29,23 +29,22 @@ background-color: #171923;
    </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
-background-color: #90cdf4;
+background-color: #FFE81F;
 border: none;
 font-size: 11px;
-color: white;
+color: black;
 font-weight: 600;
 }
 
 QPushButton:hover {
-background-color: #3182CE;
+background-color: #ccba18;
 
 }
 
 QPushButton:pressed {
-background-color: #3182CE;
+background-color: #ccba18;
 
-}
-</string>
+}</string>
    </property>
    <property name="text">
     <string>Slide Show</string>
@@ -62,23 +61,22 @@ background-color: #3182CE;
    </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
-background-color: #90cdf4;
+background-color: #FFE81F;
 border: none;
 font-size: 11px;
-color: white;
+color: black;
 font-weight: 600;
 }
 
 QPushButton:hover {
-background-color: #3182CE;
+background-color: #ccba18;
 
 }
 
 QPushButton:pressed {
-background-color: #3182CE;
+background-color: #ccba18;
 
-}
-</string>
+}</string>
    </property>
    <property name="text">
     <string>Remove Image</string>
@@ -95,12 +93,12 @@ background-color: #3182CE;
    </property>
    <property name="styleSheet">
     <string notr="true">QListWidget {
-border: 1px solid #90cdf4;
+border: 1px solid #FFE81F;
 color: white;
 }</string>
    </property>
    <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
+    <enum>QFrame::Sunken</enum>
    </property>
    <property name="lineWidth">
     <number>2</number>
@@ -123,7 +121,7 @@ color: white;
    </property>
    <property name="styleSheet">
     <string notr="true">QLabel {
-border: 1px solid #90cdf4;
+border: 1px solid #FFE81F;
 }
 </string>
    </property>
@@ -131,13 +129,19 @@ border: 1px solid #90cdf4;
     <enum>QFrame::Box</enum>
    </property>
    <property name="frameShadow">
-    <enum>QFrame::Sunken</enum>
+    <enum>QFrame::Raised</enum>
    </property>
    <property name="lineWidth">
     <number>2</number>
    </property>
    <property name="text">
     <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="indent">
+    <number>0</number>
    </property>
   </widget>
   <widget class="QPushButton" name="startButton">
@@ -151,20 +155,20 @@ border: 1px solid #90cdf4;
    </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
-background-color: #90cdf4;
+background-color: #FFE81F;
 border: none;
 font-size: 11px;
-color: white;
+color: black;
 font-weight: 600;
 }
 
 QPushButton:hover {
-background-color: #3182CE;
+background-color: #ccba18;
 
 }
 
 QPushButton:pressed {
-background-color: #3182CE;
+background-color: #ccba18;
 
 }</string>
    </property>
@@ -183,23 +187,22 @@ background-color: #3182CE;
    </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
-background-color: #90cdf4;
+background-color: #FFE81F;
 border: none;
 font-size: 11px;
-color: white;
+color: black;
 font-weight: 600;
 }
 
 QPushButton:hover {
-background-color: #3182CE;
+background-color: #ccba18;
 
 }
 
 QPushButton:pressed {
-background-color: #3182CE;
+background-color: #ccba18;
 
-}
-</string>
+}</string>
    </property>
    <property name="text">
     <string>Load Image</string>
@@ -216,20 +219,20 @@ background-color: #3182CE;
    </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
-background-color: #90cdf4;
+background-color: #FFE81F;
 border: none;
 font-size: 11px;
-color: white;
+color: black;
 font-weight: 600;
 }
 
 QPushButton:hover {
-background-color: #3182CE;
+background-color: #ccba18;
 
 }
 
 QPushButton:pressed {
-background-color: #3182CE;
+background-color: #ccba18;
 
 }</string>
    </property>
@@ -242,13 +245,13 @@ background-color: #3182CE;
     <rect>
      <x>790</x>
      <y>370</y>
-     <width>200</width>
+     <width>201</width>
      <height>25</height>
     </rect>
    </property>
    <property name="styleSheet">
     <string notr="true">QLabel {
-border: 1px solid #90cdf4;
+border: 1px solid #FFE81F;
 color: white;
 }</string>
    </property>
@@ -267,23 +270,22 @@ color: white;
    </property>
    <property name="styleSheet">
     <string notr="true">QPushButton {
-background-color: #90cdf4;
+background-color: #FFE81F;
 border: none;
 font-size: 11px;
-color: white;
+color: black;
 font-weight: 600;
 }
 
 QPushButton:hover {
-background-color: #3182CE;
+background-color: #ccba18;
 
 }
 
 QPushButton:pressed {
-background-color: #3182CE;
+background-color: #ccba18;
 
-}
-</string>
+}</string>
    </property>
    <property name="text">
     <string>Load video</string>

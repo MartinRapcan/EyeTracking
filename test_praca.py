@@ -5,6 +5,7 @@ import os
 import cv2
 import numpy as np
 import re
+import time
 
 from PySide6.QtCore import Qt
 from pyqt_frameless_window import FramelessMainWindow
@@ -12,8 +13,9 @@ from tkinter import *
 from ctypes import windll
 from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QObject, QThread, Signal, Slot
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog, QHBoxLayout, QLabel, QTextEdit, QPushButton, QWidget, QVBoxLayout
+from PySide6.QtGui import QPixmap, QImage, QPalette, QBrush, QIcon, QTransform, QColor
+from PySide6.QtCore import QFile, QObject, QThread, Signal, Slot, QTimer
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog, QHBoxLayout, QLabel, QTextEdit, QPushButton, QWidget, QVBoxLayout, QSplashScreen, QProgressBar, QStyleFactory
 from os.path import isfile, join
 from pupil_detectors import Detector2D
 import pyautogui
@@ -105,15 +107,10 @@ class MainWindow(FramelessMainWindow):
     loader = QUiLoader()
     videoPath = None
     isPaused = False
+    timerWeb = None
 
     def __init__(self):
         super().__init__()
-
-        self.captureWeb = cv2.VideoCapture(0)
-        self.captureWeb.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.captureWeb.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        self.captureWeb.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-
         self.__testWidget = QWidget()
         ui = QFile("ui/test.ui")
         ui.open(QFile.ReadOnly)
@@ -127,16 +124,16 @@ class MainWindow(FramelessMainWindow):
         self.mainWidget.setLayout(lay)
         self.setCentralWidget(self.mainWidget)
         self.setGeometry(200, 50, 1100, 735)
-        self.setFixedSize(1100, 730)
+        self.setFixedSize(1100, 735)
         titleBar = self.getTitleBar()
         titleBar.setFixedHeight(35)
         #print(dir(titleBar))
         #print(titleBar.children())
         # use findchildren to find QPushButtons
         for button in titleBar.findChildren(QPushButton):
-            button.setStyleSheet("QPushButton {background-color: #90cdf4; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #3182ce; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #3182ce; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
-        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 15px}")
-        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 5px}")
+            button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
+        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
+        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
         self.image = None
         self.__testWidget.startButton.clicked.connect(self.startWebcam)
         self.__testWidget.stopButton.clicked.connect(self.stopWebcam)
@@ -160,6 +157,9 @@ class MainWindow(FramelessMainWindow):
             videoName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
             self.videoPath = fname[0]
             self.__testWidget.videoPath.setText(videoName)
+        else:
+            self.videoPath = None
+            self.__testWidget.videoPath.setText("")
 
     def removeImage(self):
         if self.__testWidget.listImages.currentItem():
@@ -185,7 +185,7 @@ class MainWindow(FramelessMainWindow):
             self.overlay.end.clicked.connect(self.endSlideShow)
 
             self.imageB = self.__testWidget.listImages.item(0).text()
-            self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio))
+            self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
      
 
 
@@ -198,7 +198,7 @@ class MainWindow(FramelessMainWindow):
     def nextImage(self):
         if self.imageB != list(self.images.keys())[-1]:
             self.imageB = list(self.images.keys())[list(self.images.keys()).index(self.imageB) + 1]
-            self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio))
+            self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
             if self.imageB == list(self.images.keys())[-1]:
                 self.overlay.next.hide()
                 self.overlay.end.show()
@@ -208,7 +208,15 @@ class MainWindow(FramelessMainWindow):
 
     def startWebcam(self):
         if self.videoPath:
-            self.captureWeb.open(self.videoPath)
+            self.captureWeb = cv2.VideoCapture(self.videoPath)
+        else:
+            self.captureWeb = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
+        self.captureWeb.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        self.captureWeb.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        self.captureWeb.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+        self.captureWeb.set(cv2.CAP_PROP_FPS, 60)
+        self.captureWeb.set(cv2.CAP_PROP_POS_MSEC, 0)
 
         self.timerWeb = QtCore.QTimer()
         self.timerWeb.timeout.connect(self.update_frame)
@@ -253,8 +261,10 @@ class MainWindow(FramelessMainWindow):
             self.stopWebcam()
 
     def stopWebcam(self):
-        if self.timerWeb.isActive():
+        if self.timerWeb is not None and self.timerWeb.isActive():
             self.timerWeb.stop()
+            self.captureWeb.release()
+            self.__testWidget.imgLabel.clear()
 
     def displayImage(self, img, window=1):
         qformat = QtGui.QImage.Format_Indexed8
@@ -277,9 +287,21 @@ class MainWindow(FramelessMainWindow):
             self.overlay.close()
         event.accept()
 
+
+# loader = QUiLoader()
+# self.__testWidget = QWidget()
+#         ui = QFile("ui/test.ui")
+#         ui.open(QFile.ReadOnly)
+#         self.__testWidget = self.loader.load(ui)
+#         ui.close()
+
+#TODO: splashScreen
+
+
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    app.setStyleSheet("QMainWindow {background: '#171923';}")
+    app.setStyleSheet("QMainWindow {background: '#171923';}") 
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
