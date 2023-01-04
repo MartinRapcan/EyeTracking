@@ -185,9 +185,15 @@ class MainWindow(FramelessMainWindow):
             self.overlay.end.clicked.connect(self.endSlideShow)
 
             self.imageB = self.__testWidget.listImages.item(0).text()
-            self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-     
+            #self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB])
+            #.scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation))
 
+            # if the width and height of the image is greater than the width and height of the label
+            if self.images[self.imageB].width() > self.overlay.image.width() and self.images[self.imageB].height() > self.overlay.image.height():
+                self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            else:
+                self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
+                self.overlay.image.setAlignment(QtCore.Qt.AlignCenter)
 
     def endSlideShow(self):
         self.overlay.close()
@@ -198,7 +204,11 @@ class MainWindow(FramelessMainWindow):
     def nextImage(self):
         if self.imageB != list(self.images.keys())[-1]:
             self.imageB = list(self.images.keys())[list(self.images.keys()).index(self.imageB) + 1]
-            self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            if self.images[self.imageB].width() > self.overlay.image.width() and self.images[self.imageB].height() > self.overlay.image.height():
+                self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            else:
+                self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
+                self.overlay.image.setAlignment(QtCore.Qt.AlignCenter)
             if self.imageB == list(self.images.keys())[-1]:
                 self.overlay.next.hide()
                 self.overlay.end.show()
