@@ -141,7 +141,9 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.removeImage.clicked.connect(self.removeImage)
         self.__testWidget.slideShow.clicked.connect(self.slideShow)
         self.__testWidget.videoPicker.clicked.connect(self.videoPicker)
-        self.overlay = None
+        self.__testWidget.startCalibrationButton.clicked.connect(self.openCalibration)
+        self.slideShowOverlay = None
+        self.calibrationOverlay = None
 
     def loadImage(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.gif *.png *.jpeg)")
@@ -167,36 +169,37 @@ class MainWindow(FramelessMainWindow):
             self.__testWidget.listImages.takeItem(self.__testWidget.listImages.currentRow())
 
     def slideShow(self):
-        if self.__testWidget.listImages.count() > 0:
-            ui = QFile("ui/full_screen_overlay.ui")
-            ui.open(QFile.ReadOnly)
-            self.overlay = self.loader.load(ui)
-            ui.close()
+        if self.timerWeb is not None and self.timerWeb.isActive() and self.__testWidget.listImages.count() > 0:
+            if not self.slideShowOverlay:
+                ui = QFile("ui/fullScreenSlideShowOverlay.ui")
+                ui.open(QFile.ReadOnly)
+                self.slideShowOverlay = self.loader.load(ui)
+                ui.close()
             if self.__testWidget.listImages.count() > 1:
-                self.overlay.next.show()
-                self.overlay.end.hide()
+                self.slideShowOverlay.next.show()
+                self.slideShowOverlay.end.hide()
             else:
-                self.overlay.next.hide()
-                self.overlay.end.show()
-            self.overlay.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-            self.overlay.showFullScreen()
-            self.overlay.marker.setPixmap(QtGui.QPixmap("public/marker.png").scaled(80, 80, QtCore.Qt.KeepAspectRatio))
-            self.overlay.next.clicked.connect(self.nextImage)
-            self.overlay.end.clicked.connect(self.endSlideShow)
+                self.slideShowOverlay.next.hide()
+                self.slideShowOverlay.end.show()
+            self.slideShowOverlay.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+            self.slideShowOverlay.showFullScreen()
+            self.slideShowOverlay.marker.setPixmap(QtGui.QPixmap("public/marker.png").scaled(80, 80, QtCore.Qt.KeepAspectRatio))
+            self.slideShowOverlay.next.clicked.connect(self.nextImage)
+            self.slideShowOverlay.end.clicked.connect(self.endSlideShow)
 
             self.imageB = self.__testWidget.listImages.item(0).text()
             #self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB])
             #.scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation))
 
             # if the width and height of the image is greater than the width and height of the label
-            if self.images[self.imageB].width() > self.overlay.image.width() and self.images[self.imageB].height() > self.overlay.image.height():
-                self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            if self.images[self.imageB].width() > self.slideShowOverlay.image.width() or self.images[self.imageB].height() > self.slideShowOverlay.image.height():
+                self.slideShowOverlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.slideShowOverlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
             else:
-                self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
-                self.overlay.image.setAlignment(QtCore.Qt.AlignCenter)
+                self.slideShowOverlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
+            self.slideShowOverlay.image.setAlignment(QtCore.Qt.AlignCenter)
 
     def endSlideShow(self):
-        self.overlay.close()
+        self.slideShowOverlay.close()
 
     def previousImage(self):
         pass
@@ -204,17 +207,17 @@ class MainWindow(FramelessMainWindow):
     def nextImage(self):
         if self.imageB != list(self.images.keys())[-1]:
             self.imageB = list(self.images.keys())[list(self.images.keys()).index(self.imageB) + 1]
-            if self.images[self.imageB].width() > self.overlay.image.width() and self.images[self.imageB].height() > self.overlay.image.height():
-                self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            if self.images[self.imageB].width() > self.slideShowOverlay.image.width() or self.images[self.imageB].height() > self.slideShowOverlay.image.height():
+                self.slideShowOverlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.slideShowOverlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
             else:
-                self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
-                self.overlay.image.setAlignment(QtCore.Qt.AlignCenter)
+                self.slideShowOverlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
+            self.slideShowOverlay.image.setAlignment(QtCore.Qt.AlignCenter)
             if self.imageB == list(self.images.keys())[-1]:
-                self.overlay.next.hide()
-                self.overlay.end.show()
+                self.slideShowOverlay.next.hide()
+                self.slideShowOverlay.end.show()
         else:
-            self.overlay.next.hide()
-            self.overlay.end.show()
+            self.slideShowOverlay.next.hide()
+            self.slideShowOverlay.end.show()
 
     def startWebcam(self):
         if self.videoPath:
@@ -293,20 +296,30 @@ class MainWindow(FramelessMainWindow):
 
         
     def closeEvent(self, event):
-        if self.overlay:
-            self.overlay.close()
+        if self.slideShowOverlay:
+            self.slideShowOverlay.close()
         event.accept()
 
+    def openCalibration(self):
+        if self.timerWeb is not None and self.timerWeb.isActive():
+            if not self.calibrationOverlay:
+                ui = QFile("ui/fullScreenCalibrationOverlay.ui")
+                ui.open(QFile.ReadOnly)
+                self.calibrationOverlay = self.loader.load(ui)
+                ui.close()
+                self.calibrationOverlay.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+                self.calibrationOverlay.showFullScreen()
+                self.calibrationOverlay.marker.setPixmap(QtGui.QPixmap("public/marker.png").scaled(80, 80, QtCore.Qt.KeepAspectRatio))
+                self.calibrationOverlay.startCalibration.clicked.connect(self.startCalibration)
+                self.calibrationOverlay.endCalibration.clicked.connect(self.endCalibration)
+            else:
+                self.calibrationOverlay.show()
 
-# loader = QUiLoader()
-# self.__testWidget = QWidget()
-#         ui = QFile("ui/test.ui")
-#         ui.open(QFile.ReadOnly)
-#         self.__testWidget = self.loader.load(ui)
-#         ui.close()
+    def startCalibration(self):
+        pass
 
-#TODO: splashScreen
-
+    def endCalibration(self):
+        self.calibrationOverlay.close()
 
 
 if __name__ == "__main__":

@@ -237,14 +237,14 @@ background-color: #ccba18;
 }</string>
    </property>
    <property name="text">
-    <string>Stop</string>
+    <string>Stop Webcam</string>
    </property>
   </widget>
   <widget class="QLabel" name="videoPath">
    <property name="geometry">
     <rect>
      <x>790</x>
-     <y>370</y>
+     <y>390</y>
      <width>201</width>
      <height>25</height>
     </rect>
@@ -263,7 +263,7 @@ color: white;
    <property name="geometry">
     <rect>
      <x>990</x>
-     <y>370</y>
+     <y>390</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -289,6 +289,38 @@ background-color: #ccba18;
    </property>
    <property name="text">
     <string>Load video</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="startCalibrationButton">
+   <property name="geometry">
+    <rect>
+     <x>990</x>
+     <y>340</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+
+}</string>
+   </property>
+   <property name="text">
+    <string>Calibrate</string>
    </property>
   </widget>
  </widget>
