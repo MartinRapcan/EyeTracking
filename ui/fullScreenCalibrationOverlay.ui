@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>987</width>
+    <width>859</width>
     <height>644</height>
    </rect>
   </property>
@@ -41,6 +41,13 @@ background-color: #171923;
              <width>80</width>
              <height>80</height>
             </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QLabel {
+border: 2px solid white;
+ border-radius: 40px;
+}
+</string>
            </property>
            <property name="text">
             <string/>
@@ -92,6 +99,13 @@ background-color: #171923;
              <width>80</width>
              <height>80</height>
             </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QLabel {
+border: 2px solid white;
+ border-radius: 40px;
+}
+</string>
            </property>
            <property name="text">
             <string/>
@@ -193,6 +207,13 @@ background-color: #171923;
              <height>80</height>
             </size>
            </property>
+           <property name="styleSheet">
+            <string notr="true">QLabel {
+border: 2px solid red;
+ border-radius: 40px;
+}
+</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -290,6 +311,13 @@ background-color: #171923;
              <height>80</height>
             </size>
            </property>
+           <property name="styleSheet">
+            <string notr="true">QLabel {
+border: 2px solid white;
+ border-radius: 40px;
+}
+</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -308,6 +336,13 @@ background-color: #171923;
              <width>80</width>
              <height>80</height>
             </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QLabel {
+border: 2px solid white;
+ border-radius: 40px;
+}
+</string>
            </property>
            <property name="text">
             <string/>
@@ -371,7 +406,7 @@ background-color: #171923;
              </property>
              <property name="maximumSize">
               <size>
-               <width>16777215</width>
+               <width>100</width>
                <height>25</height>
               </size>
              </property>
@@ -409,7 +444,7 @@ background-color: #ccba18;
              </property>
              <property name="maximumSize">
               <size>
-               <width>16777215</width>
+               <width>100</width>
                <height>25</height>
               </size>
              </property>
@@ -447,7 +482,7 @@ background-color: #ccba18;
               <enum>Qt::Horizontal</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::MinimumExpanding</enum>
+              <enum>QSizePolicy::Expanding</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
