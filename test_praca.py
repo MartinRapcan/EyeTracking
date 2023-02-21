@@ -316,7 +316,9 @@ class MainWindow(FramelessMainWindow):
                 self.calibrationOverlay.show()
 
     def startCalibration(self):
-        pass
+        # TODO: add FIFO queue for calibration points and reset style
+        self.calibrationOverlay.bottomLeftWidget.setStyleSheet("QWidget {border-radius: 40px; border: 2px solid red; }")
+        self.calibrationOverlay.bottomLeft.setPixmap(QtGui.QPixmap("public/calibration_point.png").scaled(80, 80, QtCore.Qt.KeepAspectRatio))
 
     def endCalibration(self):
         self.calibrationOverlay.close()
