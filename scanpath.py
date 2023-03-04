@@ -64,8 +64,8 @@ for key in points_group:
 
 # now draw the circles
 image = cv2.imread(image_path)
-overlay = image.copy()
-original = image.copy()
+overlay_circles = image.copy()
+overlay_lines = image.copy()
 points_group_keys = list(points_group)
 
 for key in range(0, len(points_group) - 1):
@@ -85,14 +85,17 @@ for key in range(0, len(points_group) - 1):
         point1_y = y1 + radius1 * sin(angle)
         point2_x = x2 - radius2 * cos(angle)
         point2_y = y2 - radius2 * sin(angle)
-        cv2.line(overlay, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(points_group)[key]], 2)
+        cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(points_group)[key]], 2)
     
-    cv2.circle(overlay, (x1, y1), radius1, colors[points_group_keys[key]], 4)
+    cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], 4)
+    if key == len(points_group) - 2:
+        cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], 4)
 
-   
 
+alpha_circles = 0.5
+alpha_lines = 0.2
 
-alpha = 0.35
-result = cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
+result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circles, 0)
+result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
 
 cv2.imwrite("./images/scanpath_test.png", result)
