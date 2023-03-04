@@ -300,6 +300,10 @@ class MainWindow(FramelessMainWindow):
             self.slideShowOverlay.close()
         event.accept()
 
+    # def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
+    #     print(self.size())
+    #     return super().resizeEvent(event)    
+
     def openCalibration(self):
         if self.timerWeb is not None and self.timerWeb.isActive():
             if not self.calibrationOverlay:
@@ -338,5 +342,6 @@ if __name__ == "__main__":
 # využiť angle .. ktorý je v 3D detektori
 # skusiť vytvoriť vektor z 3D detekcie a zistiť jeho smer
 
+# TODO: scan path podobne ako heatmap .. čiarky a body
 # TODO: kalibracia a validacia
 # TODO: spraviť nejake opatrenie ked je otvoreny overlay aby nenastala nejaka šarapata keby sa vymazalo nieco z obrazku
