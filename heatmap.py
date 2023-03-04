@@ -98,11 +98,11 @@ def draw_heatmap(gazepoints, dispsize, imagefile=None, alpha=0.5, savefilename=N
 
 input_path = "./coordinates/test.csv"
 
-imageName = "./images/test.jpg"
+imageName = "./images/scanpath.png"
 img = image.imread(imageName)
 w, h = len(img[0]), len(img)
 alpha = 0.5
-output_name = "./images/test_heatmap"
+output_name = "./images/scanpath_heatmap"
 ngaussian = 200
 sd = 16
 

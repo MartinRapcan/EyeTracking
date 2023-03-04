@@ -50,6 +50,8 @@ for key in points_group:
 
         if distance > diameter:
             diameter = distance
+    # TODO: to module nie je najlepšie, lepšie by bolo rozdeliť na nejake kvantilové skupiny
+    # TODO: a nasledne zobrať iba par z tychto skupín aby to nebolo take huste
     points_group[key]['diameter'] = int(diameter * diameter_scale * (len(points)% 10))
 
 colors = {}

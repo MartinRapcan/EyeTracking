@@ -298,6 +298,9 @@ class MainWindow(FramelessMainWindow):
     def closeEvent(self, event):
         if self.slideShowOverlay:
             self.slideShowOverlay.close()
+
+        if self.calibrationOverlay:
+            self.calibrationOverlay.close()
         event.accept()
 
     # def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
