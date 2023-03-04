@@ -10,14 +10,11 @@ with open(input_path) as f:
 	reader = csv.reader(f)
 	raw = list(map(lambda q: (int(q[0]), int(q[1])), list(reader)))
 
-# pick random 10% sample
 raw = sample(raw, int(len(raw) * 0.1))
 
 points_group = {}
 threshold = 100
-index = 0
 
-# use array of x and y to key the points_group
 for i in range(0, len(raw)):
     x = raw[i][0]
     y = raw[i][1]
@@ -31,7 +28,6 @@ for i in range(0, len(raw)):
     
 diameter_scale = 0.1
 
-# now loop through the points_group and calculate the middle and diameter
 for key in points_group:
     points = points_group[key]['points']
     x = 0
@@ -56,13 +52,11 @@ for key in points_group:
             diameter = distance
     points_group[key]['diameter'] = int(diameter * diameter_scale * (len(points)% 10))
 
-# generate random colors for each diameter
 colors = {}
 for key in points_group:
     colors[key] = (randint(50, 200), randint(50, 200), randint(50, 200))
 
 
-# now draw the circles
 image = cv2.imread(image_path)
 overlay_circles = image.copy()
 overlay_lines = image.copy()
