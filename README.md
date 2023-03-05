@@ -43,7 +43,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 ## Acknowledgments
 
 - Pupil-Labs Pye3d-Detector library
-- Your professors and advisors for their guidance during the project
+- Juraj Vincúr
 
 ## Contact
 
