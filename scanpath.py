@@ -4,16 +4,26 @@ from random import randint, sample
 from math import sqrt, atan2, cos, sin
 
 input_path = "./coordinates/test.csv"
-image_path = "./images/scanpath.png"
+image_path = "./images/scan_test.jpg"
+
+image = cv2.imread(image_path)
+overlay_circles = image.copy()
+overlay_lines = image.copy()
+alpha_circles = 0.4
+alpha_lines = 0.2
+TEXT_FACE = cv2.FONT_HERSHEY_SIMPLEX
+TEXT_SCALE = 0.8
+TEXT_THICKNESS = 2
+TEXT_COLOR = (0, 0, 0)
+
+points_group = {}
+colors = {}
+threshold = 150
+order = 0
 
 with open(input_path) as f:
 	reader = csv.reader(f)
 	raw = list(map(lambda q: (int(q[0]), int(q[1])), list(reader)))
-
-raw = sample(raw, int(len(raw) * 0.1))
-
-points_group = {}
-threshold = 100
 
 for i in range(0, len(raw)):
     x = raw[i][0]
@@ -23,10 +33,12 @@ for i in range(0, len(raw)):
              points_group[key]['points'].append(raw[i])
              break
     else:
-        points_group[(x, y)] = {'points': [raw[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0}
+        points_group[(x, y)] = {'points': [raw[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
+        order += 1
     
-    
-diameter_scale = 0.1
+
+points_group = dict(sorted(points_group.items(), key=lambda item: len(item[1]['points']), reverse=False))
+points_group_keys = list(points_group)    
 
 for key in points_group:
     points = points_group[key]['points']
@@ -43,29 +55,33 @@ for key in points_group:
     points_group[key]['middle']['x'] = x
     points_group[key]['middle']['y'] = y
     
-    for point in points:
-        distance = ((point[0] - x) ** 2 + (point[1] - y) ** 2) ** 0.5
-        if distance == 0:
-            distance = 10
+    
+q1_index = int(len(points_group) * 0.25)
+q2_index = int(len(points_group) * 0.5)
+q3_index = int(len(points_group) * 0.75)
 
-        if distance > diameter:
-            diameter = distance
-    # TODO: to module nie je najlepšie, lepšie by bolo rozdeliť na nejake kvantilové skupiny
-    # TODO: a nasledne zobrať iba par z tychto skupín aby to nebolo take huste
-    points_group[key]['diameter'] = int(diameter * diameter_scale * (len(points)% 10))
+q1 = points_group_keys[:q1_index]
+q2 = points_group_keys[q1_index:q2_index]
+q3 = points_group_keys[q2_index:q3_index]
+q4 = points_group_keys[q3_index:]
 
-colors = {}
+def setDiameter(array, diameter):
+    for key in array:
+        points_group[key]['diameter'] = diameter
+        
+
+setDiameter(q1, 30)
+setDiameter(q2, 50)
+setDiameter(q3, 70)
+setDiameter(q4, 100)
+
 for key in points_group:
     colors[key] = (randint(50, 200), randint(50, 200), randint(50, 200))
 
-
-image = cv2.imread(image_path)
-overlay_circles = image.copy()
-overlay_lines = image.copy()
+points_group = dict(sorted(points_group.items(), key=lambda item: item[1]['index'], reverse=False))
 points_group_keys = list(points_group)
 
 for key in range(0, len(points_group) - 1):
-
     x1 = points_group[points_group_keys[key]]['middle']['x']
     y1 = points_group[points_group_keys[key]]['middle']['y']
     x2 = points_group[points_group_keys[key + 1]]['middle']['x']
@@ -83,15 +99,21 @@ for key in range(0, len(points_group) - 1):
         point2_y = y2 - radius2 * sin(angle)
         cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(points_group)[key]], 2)
     
-    cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], 4)
+    text_size, _ = cv2.getTextSize(str(points_group[points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
+    text_origin = (int(x1 - text_size[0] / 2), int(y1 + text_size[1] / 2))
+    
+    cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], -1)
+    cv2.circle(overlay_circles, (x1, y1), radius1, (255, 255, 255), 3)
+    cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
     if key == len(points_group) - 2:
-        cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], 4)
+        text_size, _ = cv2.getTextSize(str(points_group[points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
+        text_origin = (int(x2 - text_size[0] / 2), int(y2 + text_size[1] / 2))
+        cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], -1)
+        cv2.circle(overlay_circles, (x2, y2), radius2, (255, 255, 255), 3)
+        cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
 
-
-alpha_circles = 0.5
-alpha_lines = 0.2
 
 result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circles, 0)
 result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
 
-cv2.imwrite("./images/scanpath_test.png", result)
+cv2.imwrite("./images/scan_test_after.jpg", result)
