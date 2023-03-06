@@ -87,10 +87,11 @@ def main(path):
     eye_video.release()
     cv2.destroyAllWindows()
 
-
 def create_video(path, name, resolution):
     if resolution and path and name:
         images = [f for f in os.listdir(path) if isfile(join(path, f))]
+        # i have one image in my folder make it like 1000 images
+        images = images * 1000
         video = cv2.VideoWriter(f'dataset/{name}.avi', cv2.VideoWriter_fourcc(*'XVID'), 30, resolution)
         for image in images:
             img = cv2.imread(path + image)
