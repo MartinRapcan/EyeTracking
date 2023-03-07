@@ -247,7 +247,6 @@ class MainWindow(FramelessMainWindow):
             result_2d["timestamp"] = frame_number / fps
             result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array)
             ellipse_3d = result_3d["ellipse"]
-
             self.angle = round(float(ellipse_3d["angle"]), 2)
 
             cv2.ellipse(
@@ -349,3 +348,5 @@ if __name__ == "__main__":
 # TODO: scan path podobne ako heatmap .. čiarky a body
 # TODO: kalibracia a validacia
 # TODO: spraviť nejake opatrenie ked je otvoreny overlay aby nenastala nejaka šarapata keby sa vymazalo nieco z obrazku
+# TODO: transforms lib knižnica
+# TODO: prevod medzi lokal a global coord systemom

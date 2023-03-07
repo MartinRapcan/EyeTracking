@@ -98,13 +98,13 @@ def draw_heatmap(gazepoints, dispsize, imagefile=None, alpha=0.5, savefilename=N
 
 input_path = "./coordinates/test.csv"
 
-imageName = "./images/scan_test.jpg"
+imageName = "./images/scanpath.png"
 img = image.imread(imageName)
 w, h = len(img[0]), len(img)
 alpha = 0.5
-output_name = "./images/heatmap_test_after"
+output_name = "./images/heatmap_test_after_2"
 ngaussian = 200
-sd = 16
+sd = 8
 
 with open(input_path) as f:
 	reader = csv.reader(f)
@@ -114,16 +114,3 @@ gaza_data = []
 filtered = list(filter(lambda q: (int(q[0]) < w and int(q[1]) < h), raw))
 gaze_data = list(map(lambda q: (int(q[0]), int(q[1])), filtered))
 draw_heatmap(gaze_data, (w, h), alpha=alpha, savefilename=output_name, imagefile=imageName, gaussianwh=ngaussian, gaussiansd=sd)
-
-def heatmap(imageName):
-    input_path = f"./coordinates/{imageName}.csv"
-    output_name = f"./images/{imageName}_heatmap"
-    ngaussian = 200
-    sd = 16
-
-    with open(input_path) as f:
-        reader = csv.reader(f)
-        raw = list(reader)
-
-    points = []
-    

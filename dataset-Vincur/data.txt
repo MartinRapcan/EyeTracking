@@ -1,0 +1,20 @@
+#   ^
+#   |    .-.
+#   |   |   | <- Head
+#   |   `^u^'
+# Y |      ¦V <- Camera    (As seen from above)
+#   |      ¦
+#   |      ¦
+#   |      o <- Target
+#
+#     ----------> X
+#
+# +X = left
+# +Y = back
+# +Z = up
+
+r.eye_position = [0, 0, 0]
+r.eye_target = [x, -500, z] #x, z from {-125, -100, -75, -50, -25, 0, 25, 50, 75, 100, 125}
+r.camera_position = [20, -50, -10]
+r.camera_target = [0, -r.eye_radius, 0]
+r.eye_radius = 12
