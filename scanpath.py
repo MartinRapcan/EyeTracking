@@ -25,17 +25,23 @@ with open(input_path) as f:
 	reader = csv.reader(f)
 	raw = list(map(lambda q: (int(q[0]), int(q[1])), list(reader)))
 
+raw = raw[:500]
+
+main_point = None
 for i in range(0, len(raw)):
-    x = raw[i][0]
-    y = raw[i][1]
-    for key in points_group:
-         if abs(x - key[0]) <= threshold and abs(y - key[1]) <= threshold:
-             points_group[key]['points'].append(raw[i])
-             break
-    else:
-        points_group[(x, y)] = {'points': [raw[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
-        order += 1
+    if not main_point:
+        main_point = (raw[i][0], raw[i][1])
+
+    if abs(raw[i][0] - main_point[0]) <= threshold and abs(raw[i][1] - main_point[1]) <= threshold:
+        if not points_group.get(order):
+            points_group[order] = {'points': [raw[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
+        else:
+            points_group[order]['points'].append(raw[i])
     
+    else:
+        order += 1
+        main_point = (raw[i][0], raw[i][1])
+        points_group[order] = {'points': [raw[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
 
 points_group = dict(sorted(points_group.items(), key=lambda item: len(item[1]['points']), reverse=False))
 points_group_keys = list(points_group)    
