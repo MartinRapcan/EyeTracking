@@ -9,7 +9,7 @@ image_path = "./images/scan_test.jpg"
 image = cv2.imread(image_path)
 overlay_circles = image.copy()
 overlay_lines = image.copy()
-alpha_circles = 0.4
+alpha_circles = 0.6
 alpha_lines = 0.2
 TEXT_FACE = cv2.FONT_HERSHEY_SIMPLEX
 TEXT_SCALE = 0.8
@@ -81,11 +81,13 @@ setDiameter(q2, 50)
 setDiameter(q3, 70)
 setDiameter(q4, 100)
 
-for key in points_group:
-    colors[key] = (randint(50, 200), randint(50, 200), randint(50, 200))
-
 points_group = dict(sorted(points_group.items(), key=lambda item: item[1]['index'], reverse=False))
 points_group_keys = list(points_group)
+
+color_step = 1 / len(points_group)
+for key in points_group:
+    shade = key * color_step
+    colors[key] = (int(255 * shade), int(255 * shade), int(255 * shade))
 
 for key in range(0, len(points_group) - 1):
     x1 = points_group[points_group_keys[key]]['middle']['x']

@@ -9,7 +9,7 @@ from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
 # create 2D detector
 detector_2d = Detector2D()
 # create pye3D detector
-camera = CameraModel(focal_length=561.5, resolution=[400, 400])
+camera = CameraModel(focal_length=772.55, resolution=[640, 480])
 detector_3d = Detector3D(camera=camera, long_term_mode=DetectorMode.blocking)
 # load eye video
 counter = 0
@@ -30,7 +30,7 @@ def loop(video):
             result_2d["timestamp"] = frame_number / fps
             # pass 2D detection result to 3D detector
             result_3d = detector_3d.update_and_detect(result_2d, grayscale_array)
-            print(result_3d, "\n\n")
+            
             if rep:
                 data[counter] = result_3d["circle_3d"]
             ellipse_3d = result_3d["ellipse"]
@@ -75,85 +75,12 @@ CAMERA_TARGET = [0, -EYE_RADIUS, 0]
 EYE_POSITION = [0, 0, 0]
 EYE_TARGET = [None, -500, None]
 
-def subtrackVector(v1, v2):
-    return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]]
-
-def divVector(v, n):
-    return [v[0] / n, v[1] / n, v[2] / n]
-
-def norm(v):
-    return math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)
-
-def cross(a, b):
-    return [a[1]*b[2] - a[2]*b[1],
-            a[2]*b[0] - a[0]*b[2],
-            a[0]*b[1] - a[1]*b[0]]
-
-def quaternion(axis, angle):
-    return [math.cos(angle/2), 
-            axis[0]*math.sin(angle/2), 
-            axis[1]*math.sin(angle/2), 
-            axis[2]*math.sin(angle/2)]
-
-def dot(a, b):
-    return a[0]*b + a[1]*b + a[2]*b
-
-def arccos(v):
-    return math.acos(dot([0, 0, 1], v) / norm(v))
-
-# rewrite eye function to work with lists
-def identity(n):
-    return [[1 if i == j else 0 for i in range(n)] for j in range(n)]
-
-def translate(v):
-    return [[1, 0, 0, -v[0]],
-            [0, 1, 0, -v[1]],
-            [0, 0, 1, -v[2]],
-            [0, 0, 0, 1]]
-
 def calcPoint():
-    start_point = CAMERA_POSITION
-    target_point = CAMERA_TARGET
-
-    dir_vector = subtrackVector(target_point, start_point)
-    dir_unit_vector = divVector(dir_vector, norm(dir_vector))
-
-    rotation_axis = cross([0, 0, 1], dir_unit_vector)
-    angle = arccos(dot([0, 0, 1], dir_unit_vector))
-
-    q = quaternion(rotation_axis, angle)
-
-    q = q / norm(q)
-    w, x, y, z = q
-    R = [[1-2*(y**2+z**2), 2*(x*y-z*w), 2*(x*z+y*w), 0],
-         [2*(x*y+z*w), 1-2*(x**2+z**2), 2*(y*z-x*w), 0],
-         [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x**2+y**2), 0],
-         [0, 0, 0, 1]]
-
-    print(R)
-
-    eye_normal = data[0]['normal']
-
-    T1 = identity(4)
-    T1 = translate(-start_point)
-
-    T2 = identity(4)
-    T2 = translate(start_point)
-
-    # Combine all transformations
-    M = dot(dot(T2, R), T1)
-
-    # Apply transformation to point (including homogeneous coordinates)
-    point_homogeneous = np.concatenate([start_point, [1]])
-    new_point_homogeneous = np.dot(M, point_homogeneous)
-    new_point = new_point_homogeneous[:3]
-
-    # Print rotated point
-    print(new_point, R)
-    v = list(np.dot(R[:3, :3].T, data[0]['normal']))
-
-    print(v)
+    pass
 
 if __name__ == "__main__":
-    main('dataset-Vincur/synthetizedImages/example_0.png')
-    calcPoint()
+    main('dataset-Vincur/synthetizedImages_y_offset_only/example_0.png')
+    #calcPoint()
+
+    for i in data:
+        print(data[i]['normal'], "\n\n")
