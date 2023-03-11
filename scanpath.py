@@ -99,26 +99,27 @@ for key in range(0, len(points_group) - 1):
 
     distance = sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
+    # TODO: pridať k riadiusu širku outline kruhu .. lebo to ide cez neho a vidieť to
     if distance >= (radius1 + radius2):   
         angle = atan2(y2 - y1, x2 - x1)
         point1_x = x1 + radius1 * cos(angle)
         point1_y = y1 + radius1 * sin(angle)
         point2_x = x2 - radius2 * cos(angle)
         point2_y = y2 - radius2 * sin(angle)
-        cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(points_group)[key]], 2)
+        cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(points_group)[key]], 4)
     
     text_size, _ = cv2.getTextSize(str(points_group[points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
     text_origin = (int(x1 - text_size[0] / 2), int(y1 + text_size[1] / 2))
     
     #cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], -1)
-    cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], 3)
-    cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
+    cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], 10)
+    #cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
     if key == len(points_group) - 2:
         text_size, _ = cv2.getTextSize(str(points_group[points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
         text_origin = (int(x2 - text_size[0] / 2), int(y2 + text_size[1] / 2))
         #cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], -1)
-        cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], 3)
-        cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
+        cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], 10)
+        #cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
 
 
 result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circles, 0)
