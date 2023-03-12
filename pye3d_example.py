@@ -13,9 +13,9 @@ camera = CameraModel(focal_length=772.55, resolution=[640, 480])
 detector_3d_original = Detector3D(camera=camera, long_term_mode=DetectorMode.blocking)
 detector_3d_test = Detector3D(camera=camera, 
                               long_term_mode=DetectorMode.blocking,
-                              threshold_swirski=0.85,
-                              threshold_kalman=1,
-                              threshold_short_term=0.85,
+                              threshold_swirski=0.95,
+                              threshold_kalman=0.98,
+                              long_term_forget_time=20,
                               long_term_buffer_size=50)
 # load eye video
 counter = 0
@@ -38,10 +38,10 @@ def loop(video):
             # pass 2D detection result to 3D detector
             result_3d_original = detector_3d_original.update_and_detect(result_2d, grayscale_array)
             result_3d_test = detector_3d_test.update_and_detect(result_2d, grayscale_array)
-            print(result_3d_original, "\n\n")
+
             # TODO: uncomment for future data collection
-            #if rep:
-            #    data[counter] = result_3d["circle_3d"]
+            if rep:
+                data[counter] = result_3d_original
             ellipse_3d_original = result_3d_original["ellipse"]
             ellipse_3d_test = result_3d_test["ellipse"]
             # draw 3D detection result on eye frame
@@ -67,13 +67,15 @@ def loop(video):
             # show frame
             cv2.imshow("Detector3D-original", eye_frame)  
             cv2.imshow("Detector3D-test", eye_frame_test)
-            cv2.waitKey(300)
+            #print("Frame number: ", counter)
+            cv2.waitKey(5)
         
         counter += 1
         if counter == 120:
             counter = 0
             rep = 1
             break
+
 
 def main(eye_video_path):
 
@@ -87,8 +89,6 @@ def main(eye_video_path):
     eye_video.release()
     cv2.destroyAllWindows()
 
-    for i in data:
-        print(data[i], "\n\n")
 
 EYE_RADIUS = 12
 CAMERA_POSITION = [20, -50, -10]
@@ -96,12 +96,19 @@ CAMERA_TARGET = [0, -EYE_RADIUS, 0]
 EYE_POSITION = [0, 0, 0]
 EYE_TARGET = [None, -500, None]
 
+def dir_vector(vec1, vec2):
+    return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
+
+dir_vectors = {}
 def calcPoint():
-    pass
+    for i in data:
+        dir_vectors[i] = dir_vector(data[i]['sphere']['center'], data[i]['circle_3d']['center'])
+
+    for i in dir_vectors:
+        print(dir_vectors[i])
 
 if __name__ == "__main__":
-    main('dataset-Vincur/synthetizedImages_y_offset_only/example_0.png')
-    #calcPoint()
-
-    for i in data:
-        print(data[i]['normal'], "\n\n")
+    #main('dataset-Vincur/test/example_0.png')
+    #TODO: images that not being detected correctly 18 43 71 86 87 108
+    main('dataset-Vincur/synthetizedImages_no_glint_denoised/example_0.png')
+    calcPoint()
