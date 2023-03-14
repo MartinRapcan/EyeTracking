@@ -131,7 +131,18 @@ def saveUVCoords():
         for uv in uv_coords:
             f.write(f'{uv[0]}, {uv[1]}\n')
 
+import json
 if __name__ == "__main__":
     main('dataset-Vincur/synthetizedImages_no_glint_denoised/example_0.png')
     calcPoint()
     saveUVCoords()
+    value ={  
+        "a": "1",  
+        "b": "2",  
+        "c": "4",  
+        "d": "8"  
+    }  
+    # the json file to save the output data   
+    save_file = open("config/config.json", "w")  
+    json.dump(value, save_file, indent = 6)  
+    save_file.close()  
