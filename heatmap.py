@@ -96,19 +96,24 @@ def draw_heatmap(gazepoints, dispsize, imagefile=None, alpha=0.5, savefilename=N
 
     return fig
 
-input_path = "./coordinates/test.csv"
+def convert_uv_to_px(uv_data, width, height):
+    return (int(uv_data[0] * width), int(uv_data[1] * height))
 
-imageName = "./images/scanpath.png"
+input_path = "./coordinates/uv_coords.csv"
+imageName = "./images/scan_test.jpg"
 img = image.imread(imageName)
 w, h = len(img[0]), len(img)
 alpha = 0.5
-output_name = "./images/heatmap_test_after_2"
+output_name = "./images/heatmap_uv_coords"
 ngaussian = 200
 sd = 8
 
 with open(input_path) as f:
 	reader = csv.reader(f)
-	raw = list(reader)
+	raw = list(map(lambda q: (float(q[0]), float(q[1])), reader))
+        
+for i in range(0, len(raw)):
+    raw[i] = convert_uv_to_px(raw[i], w, h)
 	
 gaza_data = [] 
 filtered = list(filter(lambda q: (int(q[0]) < w and int(q[1]) < h), raw))

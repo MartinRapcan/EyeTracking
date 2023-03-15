@@ -2,6 +2,7 @@ import argparse
 import sys
 import random
 import os
+import glob
 import cv2
 import numpy as np
 import re
@@ -101,16 +102,24 @@ def create_video(path, name, resolution):
 
 class MainWindow(FramelessMainWindow):
     detector_2d = Detector2D()
-    camera = CameraModel(focal_length=561.5, resolution=[400, 400])
+    camera = CameraModel(focal_length=561.5, resolution=[640, 480])
     detector_3d = Detector3D(camera=camera, long_term_mode=DetectorMode.blocking)
     images = {}
     imageB = None
     angle = 0
     loader = QUiLoader()
     imagePath = None
+    imageName = None
+    folderPath = None
+    imageAmount = None
     isPaused = False
     timerWeb = None
     detector_2d_config = {}
+    detectionRound = 0
+    fillImageList = 0
+    imagesPaths = {}
+    rawDataFromDetection = {}
+    clickedItem = None
 
     def __init__(self):
         super().__init__()
@@ -130,7 +139,7 @@ class MainWindow(FramelessMainWindow):
         self.setFixedSize(1100, 735)
         titleBar = self.getTitleBar()
         titleBar.setFixedHeight(35)
-        # load config/config.json
+
         with open('config/config.json') as json_file:
             self.config = json.load(json_file)
             self.detector_2d_config = self.config["detector_2d"]
@@ -139,7 +148,6 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.intensityRange.setText(str(self.config["detector_2d"]['intensity_range']))
         self.__testWidget.pupilSizeMax.setText(str(self.config["detector_2d"]['pupil_size_max']))
         self.__testWidget.pupilSizeMin.setText(str(self.config["detector_2d"]['pupil_size_min']))
-        # set textChanger to all QLineEdit above
         focalLengthRegex = QRegularExpression("^(0|[1-9]\\d*)(\\.\\d+)?$")
         intensityRangeRegex = QRegularExpression("^0|[1-9]\\d*$")
         pupilSizeMaxRegex = QRegularExpression("^1|[1-9]\\d*$")
@@ -155,6 +163,8 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.saveParameters.setEnabled(False)
         self.__testWidget.saveParameters.clicked.connect(self.saveParameters)
         self.detector_2d.update_properties(self.detector_2d_config)
+        self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
+        self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
 
 
         #print(dir(titleBar))
@@ -165,8 +175,10 @@ class MainWindow(FramelessMainWindow):
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
         self.image = None
-        self.__testWidget.startButton.clicked.connect(self.startWebcam)
-        self.__testWidget.stopButton.clicked.connect(self.stopWebcam)
+        self.__testWidget.listImages.itemClicked.connect(self.imageClicked)
+        self.__testWidget.startButton.setEnabled(False)
+        self.__testWidget.startButton.clicked.connect(self.startDetection)
+        self.__testWidget.stopButton.clicked.connect(self.stopDetection)
         self.__testWidget.loadImage.clicked.connect(self.loadImage)
         self.__testWidget.imagePath.setText("No image selected")
         self.__testWidget.imagePath.setText(self.__testWidget.imagePath.fontMetrics().elidedText(self.__testWidget.imagePath.text(), Qt.ElideRight, self.__testWidget.imagePath.width()))
@@ -201,18 +213,46 @@ class MainWindow(FramelessMainWindow):
             json.dump(self.config, outfile)
         self.detector_2d_config = self.config["detector_2d"]
         self.detector_2d.update_properties(self.detector_2d_config)
+        self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
+        self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
+        self.detectionRound = 0
+
+        if self.clickedItem:
+            self.imageClicked(self.clickedItem)
+        self.rawDataFromDetection = {}
         self.__testWidget.saveParameters.setEnabled(False)
 
     def loadImage(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.png *.jpeg)")
         if fname[0] != "":
-            imageName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
+            self.imageName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
             self.imagePath = fname[0]
-            self.__testWidget.imagePath.setText(imageName)
+            self.rawDataFromDetection = {}
+            self.fillImageList = 0
+            self.detectionRound = 0
+            self.imagesPaths = {}
+            self.clickedItem = None 
+            self.folderPath = os.path.dirname(fname[0])
+            file_list = glob.glob(os.path.join(self.folderPath, "*"))
+            self.imageAmount = len(file_list)
+            self.__testWidget.startButton.setEnabled(True)
+            self.__testWidget.imageLabel.clear()
+            self.__testWidget.listImages.clear()
+            self.__testWidget.imagePath.setText(self.imageName)
             self.__testWidget.imagePath.setText(self.__testWidget.imagePath.fontMetrics().elidedText(self.__testWidget.imagePath.text(), Qt.ElideRight, self.__testWidget.imagePath.width()))
         else:
             self.imagePath = None
+            self.folderPath = None
+            self.imageAmount = 0
+            self.fillImageList = 0
+            self.clickedItem = None
+            self.detectionRound = 0
+            self.imagesPaths = {}
+            self.rawDataFromDetection = {}
             self.__testWidget.imagePath.setText("No image selected")
+            self.__testWidget.startButton.setEnabled(False)
+            self.__testWidget.listImages.clear()
+            self.__testWidget.imageLabel.clear()
                 #self.images[imageName] = QtGui.QImage(fname[0])
                 #self.__testWidget.listImages.addItem(imageName)
 
@@ -282,37 +322,42 @@ class MainWindow(FramelessMainWindow):
     #         self.slideShowOverlay.next.hide()
     #         self.slideShowOverlay.end.show()
 
-    def startWebcam(self):
-        if self.videoPath:
-            self.captureWeb = cv2.VideoCapture(self.videoPath)
-        else:
-            self.captureWeb = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    def startDetection(self):
+        if self.imagePath:
+            if self.detectionRound == 0:
+                self.renderImage()
+                self.fillImageList = 1
+                self.detectionRound = 1
+                self.renderImage()
+            else:
+                self.renderImage()
 
-        self.captureWeb.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.captureWeb.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        self.captureWeb.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-        self.captureWeb.set(cv2.CAP_PROP_FPS, 60)
-        self.captureWeb.set(cv2.CAP_PROP_POS_MSEC, 0)
+    def renderImage(self):
+        fileName = self.imageName.split("_")
+        fileNumber = int(fileName[1].split(".")[0])
+        fileFormat = self.imageName.split(".")[-1]
+        for i in range(fileNumber, self.imageAmount):
+            newPath = self.folderPath + "/" + fileName[0] + "_" + str(i) + "." + fileFormat
+            if self.fillImageList == 0:
+                listImageName = fileName[0] + "_" + str(i) + "." + fileFormat
+                self.__testWidget.listImages.addItem(listImageName)
+                self.imagesPaths[listImageName] = newPath
 
-        self.timerWeb = QtCore.QTimer()
-        self.timerWeb.timeout.connect(self.update_frame)
-        self.timerWeb.start(5)
-
-    def update_frame(self):
-        ret, self.image = self.captureWeb.read()
-        frame_number = self.captureWeb.get(cv2.CAP_PROP_POS_FRAMES)
-        fps = self.captureWeb.get(cv2.CAP_PROP_FPS)
-
-        if ret and not self.isPaused:
-            grayscale_array = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+            image = cv2.imread(newPath)
+            # read video frame as numpy array
+            grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            # run 2D detector on video frame
             result_2d = self.detector_2d.detect(grayscale_array)
-            result_2d["timestamp"] = frame_number / fps
-            result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array)
-            ellipse_3d = result_3d["ellipse"]
-            self.angle = round(float(ellipse_3d["angle"]), 2)
+            result_2d["timestamp"] = i
+            # pass 2D detection result to 3D detector
+            result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array, apply_refraction_correction=False)
 
+            if self.detectionRound == 1:
+                self.rawDataFromDetection[i] = result_3d
+            ellipse_3d = result_3d["ellipse"]
+            # draw 3D detection result on eye frame
             cv2.ellipse(
-                self.image,
+                image,
                 tuple(int(v) for v in ellipse_3d["center"]),
                 tuple(int(v / 2) for v in ellipse_3d["axes"]),
                 ellipse_3d["angle"],
@@ -320,22 +365,91 @@ class MainWindow(FramelessMainWindow):
                 360,  # start/end angle for drawing
                 (0, 255, 0),  # color (BGR): red
             )
-            cv2.circle(
-                self.image,
-                tuple(int(v) for v in ellipse_3d["center"]),
-                2,
-                (0, 0, 255),  # color (BGR): blue
-                thickness=-2,
-            )
 
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            cv2.putText(self.image, f'Angle: {self.angle}', (5, 30), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-            self.displayImage(self.image, 1)
-            cv2.waitKey(15)
-        else:
-            self.stopWebcam()
+            self.displayImage(image, 1)
+            cv2.waitKey(10)
 
-    def stopWebcam(self):
+    def imageClicked(self, item):
+        self.clickedItem = item
+        print("refresh  image")
+        image = cv2.imread(self.imagesPaths[item.text()])
+        # read video frame as numpy array
+        grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # run 2D detector on video frame
+        result_2d = self.detector_2d.detect(grayscale_array)
+
+        result_2d["timestamp"] = list(self.imagesPaths.keys()).index(item.text())
+        # pass 2D detection result to 3D detector
+        result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array, apply_refraction_correction=False)
+
+        ellipse_3d = result_3d["ellipse"]
+        # draw 3D detection result on eye frame
+        cv2.ellipse(
+            image,
+            tuple(int(v) for v in ellipse_3d["center"]),
+            tuple(int(v / 2) for v in ellipse_3d["axes"]),
+            ellipse_3d["angle"],
+            0,
+            360,  # start/end angle for drawing
+            (0, 255, 0),  # color (BGR): red
+        )
+
+        self.displayImage(image, 2)
+
+
+        # if self.imagePath:
+        #     self.captureWeb = cv2.VideoCapture(self.imagePath)
+        # else:
+        #     self.captureWeb = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
+        # self.captureWeb.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        # self.captureWeb.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        # self.captureWeb.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+        # self.captureWeb.set(cv2.CAP_PROP_FPS, 60)
+        # self.captureWeb.set(cv2.CAP_PROP_POS_MSEC, 0)
+
+        # self.timerWeb = QtCore.QTimer()
+        # self.timerWeb.timeout.connect(self.update_frame)
+        # self.timerWeb.start(5)
+
+    # def update_frame(self):
+    #     ret, self.image = self.captureWeb.read()
+    #     frame_number = self.captureWeb.get(cv2.CAP_PROP_POS_FRAMES)
+    #     fps = self.captureWeb.get(cv2.CAP_PROP_FPS)
+
+    #     if ret and not self.isPaused:
+    #         grayscale_array = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+    #         result_2d = self.detector_2d.detect(grayscale_array)
+    #         result_2d["timestamp"] = frame_number / fps
+    #         result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array)
+    #         ellipse_3d = result_3d["ellipse"]
+    #         self.angle = round(float(ellipse_3d["angle"]), 2)
+
+    #         cv2.ellipse(
+    #             self.image,
+    #             tuple(int(v) for v in ellipse_3d["center"]),
+    #             tuple(int(v / 2) for v in ellipse_3d["axes"]),
+    #             ellipse_3d["angle"],
+    #             0,
+    #             360,  # start/end angle for drawing
+    #             (0, 255, 0),  # color (BGR): red
+    #         )
+    #         cv2.circle(
+    #             self.image,
+    #             tuple(int(v) for v in ellipse_3d["center"]),
+    #             2,
+    #             (0, 0, 255),  # color (BGR): blue
+    #             thickness=-2,
+    #         )
+
+    #         font = cv2.FONT_HERSHEY_SIMPLEX
+    #         cv2.putText(self.image, f'Angle: {self.angle}', (5, 30), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+    #         self.displayImage(self.image, 1)
+    #         cv2.waitKey(15)
+    #     else:
+    #         self.stopWebcam()
+
+    def stopDetection(self):
         if self.timerWeb is not None and self.timerWeb.isActive():
             self.timerWeb.stop()
             self.captureWeb.release()
@@ -353,8 +467,12 @@ class MainWindow(FramelessMainWindow):
         outImage = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], qformat)
         outImage = outImage.rgbSwapped()
         if window == 1:
-            self.__testWidget.imgLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
-            self.__testWidget.imgLabel.setScaledContents(True)
+            self.__testWidget.imageLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
+            self.__testWidget.imageLabel.setScaledContents(True)
+        else:
+            #TODO: pridať druhý label
+            self.__testWidget.imagePreview.setPixmap(QtGui.QPixmap.fromImage(outImage))
+            self.__testWidget.imagePreview.setScaledContents(True)
 
         
     # def closeEvent(self, event):

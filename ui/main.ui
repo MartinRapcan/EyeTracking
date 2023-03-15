@@ -90,6 +90,10 @@ background-color: #ccba18;
 QPushButton:pressed {
 background-color: #ccba18;
 
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
 }</string>
    </property>
    <property name="text">
@@ -182,7 +186,7 @@ background-color: #ccba18;
     <string>Load Image</string>
    </property>
   </widget>
-  <widget class="QLabel" name="imageLabelManual">
+  <widget class="QLabel" name="imagePreview">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -219,10 +223,10 @@ border: 1px solid #FFE81F;
   <widget class="QListWidget" name="listImages">
    <property name="geometry">
     <rect>
-     <x>420</x>
-     <y>450</y>
-     <width>301</width>
-     <height>221</height>
+     <x>900</x>
+     <y>490</y>
+     <width>190</width>
+     <height>200</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -248,7 +252,7 @@ color: white;
    <property name="geometry">
     <rect>
      <x>810</x>
-     <y>170</y>
+     <y>160</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -266,7 +270,7 @@ font-weight: bold;
     <string>Customize parameters</string>
    </property>
    <property name="alignment">
-    <set>Qt::AlignCenter</set>
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -291,14 +295,14 @@ font-weight: bold;
     <string>Detection control</string>
    </property>
    <property name="alignment">
-    <set>Qt::AlignCenter</set>
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
      <x>880</x>
-     <y>230</y>
+     <y>220</y>
      <width>91</width>
      <height>25</height>
     </rect>
@@ -323,7 +327,7 @@ font-weight: bold;
    <property name="geometry">
     <rect>
      <x>990</x>
-     <y>230</y>
+     <y>220</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -339,7 +343,7 @@ color: white;
    <property name="geometry">
     <rect>
      <x>850</x>
-     <y>270</y>
+     <y>260</y>
      <width>121</width>
      <height>25</height>
     </rect>
@@ -364,7 +368,7 @@ font-weight: bold;
    <property name="geometry">
     <rect>
      <x>990</x>
-     <y>270</y>
+     <y>260</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -380,7 +384,7 @@ color: white;
    <property name="geometry">
     <rect>
      <x>990</x>
-     <y>310</y>
+     <y>300</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -396,7 +400,7 @@ color: white;
    <property name="geometry">
     <rect>
      <x>870</x>
-     <y>310</y>
+     <y>300</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -421,7 +425,7 @@ font-weight: bold;
    <property name="geometry">
     <rect>
      <x>990</x>
-     <y>350</y>
+     <y>340</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -437,7 +441,7 @@ color: white;
    <property name="geometry">
     <rect>
      <x>870</x>
-     <y>350</y>
+     <y>340</y>
      <width>101</width>
      <height>25</height>
     </rect>
@@ -462,7 +466,7 @@ font-weight: bold;
    <property name="geometry">
     <rect>
      <x>990</x>
-     <y>390</y>
+     <y>380</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -491,6 +495,56 @@ QPushButton:disabled {
    </property>
    <property name="text">
     <string>Save</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_7">
+   <property name="geometry">
+    <rect>
+     <x>900</x>
+     <y>430</y>
+     <width>191</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 24px;
+font-weight: bold;
+}</string>
+   </property>
+   <property name="text">
+    <string>List of images</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_8">
+   <property name="geometry">
+    <rect>
+     <x>410</x>
+     <y>400</y>
+     <width>191</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 24px;
+font-weight: bold;
+}</string>
+   </property>
+   <property name="text">
+    <string>Image preview</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
  </widget>
