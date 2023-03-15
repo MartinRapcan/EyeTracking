@@ -238,7 +238,6 @@ class MainWindow(FramelessMainWindow):
             self.__testWidget.startButton.setEnabled(True)
             self.__testWidget.imageLabel.clear()
             self.__testWidget.listImages.clear()
-            self.__testWidget.imagePreview.clear()
             self.__testWidget.imagePath.setText(self.imageName)
             self.__testWidget.imagePath.setText(self.__testWidget.imagePath.fontMetrics().elidedText(self.__testWidget.imagePath.text(), Qt.ElideRight, self.__testWidget.imagePath.width()))
         else:
@@ -254,7 +253,6 @@ class MainWindow(FramelessMainWindow):
             self.__testWidget.startButton.setEnabled(False)
             self.__testWidget.listImages.clear()
             self.__testWidget.imageLabel.clear()
-            self.__testWidget.imagePreview.clear()
                 #self.images[imageName] = QtGui.QImage(fname[0])
                 #self.__testWidget.listImages.addItem(imageName)
 
@@ -396,7 +394,7 @@ class MainWindow(FramelessMainWindow):
             (0, 255, 0),  # color (BGR): red
         )
 
-        self.displayImage(image, 2)
+        self.displayImage(image, 1)
 
 
         # if self.imagePath:
@@ -472,9 +470,9 @@ class MainWindow(FramelessMainWindow):
         if window == 1:
             self.__testWidget.imageLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
             self.__testWidget.imageLabel.setScaledContents(True)
-        else:
-            self.__testWidget.imagePreview.setPixmap(QtGui.QPixmap.fromImage(outImage))
-            self.__testWidget.imagePreview.setScaledContents(True)
+        # else:
+        #     self.__testWidget.imagePreview.setPixmap(QtGui.QPixmap.fromImage(outImage))
+        #     self.__testWidget.imagePreview.setScaledContents(True)
 
         
     # def closeEvent(self, event):

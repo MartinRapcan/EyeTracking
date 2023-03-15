@@ -186,40 +186,6 @@ background-color: #ccba18;
     <string>Load Image</string>
    </property>
   </widget>
-  <widget class="QLabel" name="imagePreview">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>400</y>
-     <width>384</width>
-     <height>288</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-border: 1px solid #FFE81F;
-}
-</string>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::Box</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-   <property name="lineWidth">
-    <number>2</number>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-   <property name="indent">
-    <number>0</number>
-   </property>
-  </widget>
   <widget class="QListWidget" name="listImages">
    <property name="geometry">
     <rect>
@@ -517,31 +483,6 @@ font-weight: bold;
    </property>
    <property name="text">
     <string>List of images</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_8">
-   <property name="geometry">
-    <rect>
-     <x>410</x>
-     <y>400</y>
-     <width>191</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-border: none;
-color: #FFE81F;
-background: none;
-font-size: 24px;
-font-weight: bold;
-}</string>
-   </property>
-   <property name="text">
-    <string>Image preview</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
