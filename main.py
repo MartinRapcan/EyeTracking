@@ -530,3 +530,4 @@ if __name__ == "__main__":
 # TODO: spraviť nejake opatrenie ked je otvoreny overlay aby nenastala nejaka šarapata keby sa vymazalo nieco z obrazku
 # TODO: transforms lib knižnica
 # TODO: prevod medzi lokal a global coord systemom
+# TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
