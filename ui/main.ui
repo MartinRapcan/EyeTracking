@@ -218,7 +218,7 @@ color: white;
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>390</y>
+     <y>370</y>
      <width>281</width>
      <height>51</height>
     </rect>
@@ -325,19 +325,22 @@ font-weight: bold;
    </property>
   </widget>
   <widget class="QWidget" name="widget" native="true">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>450</y>
+     <y>430</y>
      <width>1100</width>
-     <height>250</height>
+     <height>270</height>
     </rect>
    </property>
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>0</y>
+      <y>10</y>
       <width>300</width>
       <height>30</height>
      </rect>
@@ -355,14 +358,14 @@ font-weight: bold;
      <string>Detector 2D</string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignHCenter|Qt::AlignTop</set>
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QScrollArea" name="scrollArea">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>30</y>
+      <y>50</y>
       <width>308</width>
       <height>211</height>
      </rect>

@@ -1,1 +1,27 @@
-{"detector_2d": {"intensity_range": 32, "pupil_size_max": 120, "pupil_size_min": 50}, "focal_length": 772.55}
+{
+    "detector_2d": 
+    {
+        "intensity_range": 32, 
+        "pupil_size_max": 120, 
+        "pupil_size_min": 50,
+        "coarse_detection": 1,
+        "coarse_filter_min": 128,
+        "coarse_filter_max": 280,
+        "blur_size": 5,
+        "canny_threshold": 160,
+        "canny_ration": 2,
+        "canny_aperture": 5,
+        "strong_perimeter_ratio_range_min": 0.8,
+        "strong_perimeter_ratio_range_max": 1.1,
+        "strong_area_ratio_range_min": 0.6,
+        "strong_area_ratio_range_max": 1.1,
+        "contour_size_min": 5,
+        "ellipse_roundness_ratio": 0.1,
+        "initial_ellipse_fit_threshhold": 1.8,
+        "final_perimeter_ratio_range_min": 0.6,
+        "final_perimeter_ratio_range_max": 1.2,
+        "ellipse_true_support_min_dist": 2.5,
+        "support_pixel_ratio_exponent": 2.0
+    }, 
+    "focal_length": 772.55
+}

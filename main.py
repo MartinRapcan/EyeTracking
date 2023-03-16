@@ -145,17 +145,44 @@ class MainWindow(FramelessMainWindow):
             self.detector_2d_config = self.config["detector_2d"]
 
         self.__testWidget.focalLength.setText(str(self.config['focal_length']))
+
+        # Detector 2D
         self.__testWidget.intensityRange.setText(str(self.config["detector_2d"]['intensity_range']))
         self.__testWidget.pupilSizeMax.setText(str(self.config["detector_2d"]['pupil_size_max']))
         self.__testWidget.pupilSizeMin.setText(str(self.config["detector_2d"]['pupil_size_min']))
+        self.__testWidget.coarseDetection.setText(str(self.config["detector_2d"]['coarse_detection']))
+        self.__testWidget.coarseFilterMin.setText(str(self.config["detector_2d"]['coarse_filter_min']))
+        self.__testWidget.coarseFilterMax.setText(str(self.config["detector_2d"]['coarse_filter_max'])) 
+        self.__testWidget.initialEllipseTreshhold.setText(str(self.config["detector_2d"]['initial_ellipse_fit_threshhold']))
+        self.__testWidget.finalPerimeterMin.setText(str(self.config["detector_2d"]['final_perimeter_ratio_range_min'])) 
+        self.__testWidget.finalPerimeterMax.setText(str(self.config["detector_2d"]['final_perimeter_ratio_range_max']))
+        self.__testWidget.ellipseSupportMinDist.setText(str(self.config["detector_2d"]['ellipse_true_support_min_dist']))
+        self.__testWidget.supportPixelRatio.setText(str(self.config["detector_2d"]['support_pixel_ratio_exponent']))
+        self.__testWidget.blurSize.setText(str(self.config["detector_2d"]['blur_size']))
+        self.__testWidget.cannyTreshold.setText(str(self.config["detector_2d"]['canny_threshold']))
+        self.__testWidget.cannyRation.setText(str(self.config["detector_2d"]['canny_ration']))
+        self.__testWidget.cannyAperture.setText(str(self.config["detector_2d"]['canny_aperture']))
+        self.__testWidget.contourSizeMin.setText(str(self.config["detector_2d"]['contour_size_min']))
+        self.__testWidget.ellipseRoudnessRatio.setText(str(self.config["detector_2d"]['ellipse_roundness_ratio']))
+        self.__testWidget.strongPerimeterMin.setText(str(self.config["detector_2d"]['strong_perimeter_ratio_range_min']))
+        self.__testWidget.strongPerimeterMax.setText(str(self.config["detector_2d"]['strong_perimeter_ratio_range_max']))
+        self.__testWidget.strongAreaMin.setText(str(self.config["detector_2d"]['strong_area_ratio_range_min']))
+        self.__testWidget.strongAreaMax.setText(str(self.config["detector_2d"]['strong_area_ratio_range_max']))
+
+        # Validators
         focalLengthRegex = QRegularExpression("^(0|[1-9]\\d*)(\\.\\d+)?$")
         intensityRangeRegex = QRegularExpression("^0|[1-9]\\d*$")
         pupilSizeMaxRegex = QRegularExpression("^1|[1-9]\\d*$")
         pupilSizeMinRegex = QRegularExpression("^0|[1-9]\\d*$")
+
+        # Camera
         self.__testWidget.focalLength.setValidator(QRegularExpressionValidator(focalLengthRegex))
+        
+        # Detector 2D
         self.__testWidget.intensityRange.setValidator(QRegularExpressionValidator(intensityRangeRegex))
         self.__testWidget.pupilSizeMax.setValidator(QRegularExpressionValidator(pupilSizeMaxRegex))
         self.__testWidget.pupilSizeMin.setValidator(QRegularExpressionValidator(pupilSizeMinRegex))
+        
         self.__testWidget.focalLength.textChanged.connect(self.configChanged)
         self.__testWidget.intensityRange.textChanged.connect(self.configChanged)
         self.__testWidget.pupilSizeMax.textChanged.connect(self.configChanged)
