@@ -653,3 +653,4 @@ if __name__ == "__main__":
 # TODO: transforms lib knižnica
 # TODO: prevod medzi lokal a global coord systemom
 # TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
+# TODO: pre kameru pridať velkosť obrazku do configu

@@ -1,8 +1,8 @@
 {
     "detector_2d":{
-       "intensity_range":32,
-       "pupil_size_max":120,
-       "pupil_size_min":50,
+       "intensity_range":23,
+       "pupil_size_max":100,
+       "pupil_size_min":10,
        "coarse_detection":1,
        "coarse_filter_min":128,
        "coarse_filter_max":280,
@@ -22,5 +22,5 @@
        "ellipse_true_support_min_dist":2.5,
        "support_pixel_ratio_exponent":2.0
     },
-    "focal_length":772.55
+    "focal_length":561.5
  }

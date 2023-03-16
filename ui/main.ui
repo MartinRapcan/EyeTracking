@@ -264,41 +264,6 @@ font-weight: bold;
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="saveParameters">
-   <property name="geometry">
-    <rect>
-     <x>990</x>
-     <y>380</y>
-     <width>100</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QPushButton {
-background-color: #FFE81F;
-border: none;
-font-size: 11px;
-color: black;
-font-weight: 600;
-}
-
-QPushButton:hover {
-background-color: #ccba18;
-
-}
-
-QPushButton:pressed {
-background-color: #ccba18;
-}
-
-QPushButton:disabled {
-    background-color:  #87814c;
-}</string>
-   </property>
-   <property name="text">
-    <string>Save</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
@@ -2261,6 +2226,76 @@ font-weight: bold;
       </item>
      </layout>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="saveParameters">
+    <property name="geometry">
+     <rect>
+      <x>992</x>
+      <y>236</y>
+      <width>100</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
+}</string>
+    </property>
+    <property name="text">
+     <string>Save</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="resetParameters">
+    <property name="geometry">
+     <rect>
+      <x>992</x>
+      <y>200</y>
+      <width>100</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
+}</string>
+    </property>
+    <property name="text">
+     <string>Reset Default</string>
+    </property>
    </widget>
   </widget>
   <widget class="QWidget" name="widget_7" native="true">
