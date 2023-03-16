@@ -1,26 +1,18 @@
-import argparse
 import sys
-import random
 import os
 import glob
 import cv2
-import numpy as np
 import re
-import time
 import json
 
 from PySide6.QtCore import Qt
 from pyqt_frameless_window import FramelessMainWindow
-from tkinter import *
-from ctypes import windll
-from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QPalette, QBrush, QIcon, QTransform, QColor, QRegularExpressionValidator
 from PySide6.QtCore import QFile, QObject, QThread, Signal, Slot, QTimer, QRegularExpression
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog, QHBoxLayout, QLabel, QTextEdit, QPushButton, QWidget, QVBoxLayout, QSplashScreen, QProgressBar, QStyleFactory
 from os.path import isfile, join
 from pupil_detectors import Detector2D
-import pyautogui
 from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
 # generate ui pyside6-uic ./ui/main.ui > ui_mainwindow.py
 
@@ -654,3 +646,4 @@ if __name__ == "__main__":
 # TODO: prevod medzi lokal a global coord systemom
 # TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
 # TODO: pre kameru pridať velkosť obrazku do configu
+# TODO: filter requirements

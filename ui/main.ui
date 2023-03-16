@@ -135,9 +135,9 @@ background-color: #ccba18;
   <widget class="QLabel" name="imagePath">
    <property name="geometry">
     <rect>
-     <x>819</x>
+     <x>790</x>
      <y>110</y>
-     <width>171</width>
+     <width>200</width>
      <height>25</height>
     </rect>
    </property>
@@ -189,10 +189,10 @@ background-color: #ccba18;
   <widget class="QListWidget" name="listImages">
    <property name="geometry">
     <rect>
-     <x>500</x>
-     <y>80</y>
-     <width>190</width>
-     <height>200</height>
+     <x>890</x>
+     <y>200</y>
+     <width>200</width>
+     <height>150</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -217,7 +217,7 @@ color: white;
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>810</x>
      <y>370</y>
      <width>281</width>
      <height>51</height>
@@ -236,7 +236,7 @@ font-weight: bold;
     <string>Customize parameters</string>
    </property>
    <property name="alignment">
-    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -267,8 +267,8 @@ font-weight: bold;
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
-     <x>490</x>
-     <y>20</y>
+     <x>900</x>
+     <y>140</y>
      <width>191</width>
      <height>51</height>
     </rect>
@@ -406,7 +406,7 @@ QScrollBar::add-page:vertical {
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>-650</y>
+       <y>0</y>
        <width>300</width>
        <height>861</height>
       </rect>
@@ -2297,98 +2297,148 @@ QPushButton:disabled {
      <string>Reset Default</string>
     </property>
    </widget>
-  </widget>
-  <widget class="QWidget" name="widget_7" native="true">
-   <property name="geometry">
-    <rect>
-     <x>780</x>
-     <y>150</y>
-     <width>300</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>300</width>
-     <height>41</height>
-    </size>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>300</width>
-     <height>41</height>
-    </size>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">border: 1px solid red;</string>
-   </property>
-   <widget class="QLineEdit" name="focalLength">
+   <widget class="QLabel" name="label_27">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>8</y>
-      <width>100</width>
-      <height>25</height>
+      <x>345</x>
+      <y>10</y>
+      <width>300</width>
+      <height>30</height>
      </rect>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>100</width>
-      <height>25</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>100</width>
-      <height>25</height>
-     </size>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QLineEdit {
-border: 1px solid #FFE81F;
-color: white;
-}</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_3">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>8</y>
-      <width>181</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>25</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>16777215</width>
-      <height>25</height>
-     </size>
     </property>
     <property name="styleSheet">
      <string notr="true">QLabel {
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 14px;
+font-size: 20px;
 font-weight: bold;
 }</string>
     </property>
     <property name="text">
-     <string>Focal length</string>
+     <string>Detector 3D</string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     <set>Qt::AlignCenter</set>
     </property>
-    <property name="margin">
-     <number>0</number>
+   </widget>
+   <widget class="QLabel" name="label_28">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>10</y>
+      <width>300</width>
+      <height>30</height>
+     </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 20px;
+font-weight: bold;
+}</string>
+    </property>
+    <property name="text">
+     <string>Camera</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_7" native="true">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>50</y>
+      <width>300</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>300</width>
+      <height>41</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>300</width>
+      <height>41</height>
+     </size>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <widget class="QLineEdit" name="focalLength">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>8</y>
+       <width>100</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+border: 1px solid #FFE81F;
+color: white;
+}</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>8</y>
+       <width>181</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+     </property>
+     <property name="text">
+      <string>Focal length</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>

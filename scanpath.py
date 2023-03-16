@@ -1,6 +1,5 @@
 import csv
 import cv2
-from random import randint, sample
 from math import sqrt, atan2, cos, sin
 
 input_path = "./coordinates/uv_coords.csv"

@@ -1,5 +1,4 @@
 import os
-import argparse
 import csv
 import numpy
 from matplotlib import pyplot, image
