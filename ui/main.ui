@@ -438,7 +438,7 @@ QScrollBar::add-page:vertical {
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>0</y>
+       <y>-650</y>
        <width>300</width>
        <height>861</height>
       </rect>
@@ -618,7 +618,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="intensityRange">
          <property name="geometry">
@@ -705,7 +705,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="coarseDetection">
          <property name="geometry">
@@ -792,7 +792,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="coarseFilterMin">
          <property name="geometry">
@@ -879,7 +879,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="coarseFilterMax">
          <property name="geometry">
@@ -966,7 +966,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="initialEllipseTreshhold">
          <property name="geometry">
@@ -1053,7 +1053,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="finalPerimeterMin">
          <property name="geometry">
@@ -1140,7 +1140,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="finalPerimeterMax">
          <property name="geometry">
@@ -1227,7 +1227,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="ellipseSupportMinDist">
          <property name="geometry">
@@ -1314,7 +1314,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="supportPixelRatio">
          <property name="geometry">
@@ -1401,7 +1401,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="blurSize">
          <property name="geometry">
@@ -1488,7 +1488,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="cannyTreshold">
          <property name="geometry">
@@ -1575,7 +1575,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="cannyRation">
          <property name="geometry">
@@ -1662,7 +1662,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="cannyAperture">
          <property name="geometry">
@@ -1749,7 +1749,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="contourSizeMin">
          <property name="geometry">
@@ -1836,7 +1836,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="ellipseRoudnessRatio">
          <property name="geometry">
@@ -1923,7 +1923,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="strongPerimeterMin">
          <property name="geometry">
@@ -2010,7 +2010,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="strongPerimeterMax">
          <property name="geometry">
@@ -2097,7 +2097,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="strongAreaMin">
          <property name="geometry">
@@ -2184,7 +2184,7 @@ font-weight: bold;
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border: 1px solid red;</string>
+         <string notr="true"/>
         </property>
         <widget class="QLineEdit" name="strongAreaMax">
          <property name="geometry">
