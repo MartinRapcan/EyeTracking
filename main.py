@@ -102,8 +102,8 @@ def create_video(path, name, resolution):
 
 class MainWindow(FramelessMainWindow):
     detector_2d = Detector2D()
-    camera = CameraModel(focal_length=561.5, resolution=[640, 480])
-    detector_3d = Detector3D(camera=camera, long_term_mode=DetectorMode.blocking)
+    camera = None
+    detector_3d = None
     images = {}
     imageB = None
     angle = 0
@@ -143,7 +143,9 @@ class MainWindow(FramelessMainWindow):
         with open('config/config.json') as json_file:
             self.config = json.load(json_file)
             self.detector_2d_config = self.config["detector_2d"]
+            self.detector_2d_config["coarse_detection"] = bool(self.detector_2d_config["coarse_detection"])
 
+        # Camera config values
         self.__testWidget.focalLength.setText(str(self.config['focal_length']))
 
         # Detector 2D config values
@@ -204,7 +206,14 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.focalLength.textChanged.connect(self.configChanged)
 
         # Detector 2D event listeners
+        self.__testWidget.coarseDetection.textChanged.connect(self.configChanged)
+        self.__testWidget.coarseFilterMin.textChanged.connect(self.configChanged)
+        self.__testWidget.coarseFilterMax.textChanged.connect(self.configChanged)
         self.__testWidget.intensityRange.textChanged.connect(self.configChanged)
+        self.__testWidget.blurSize.textChanged.connect(self.configChanged)
+        self.__testWidget.cannyTreshold.textChanged.connect(self.configChanged)
+        self.__testWidget.cannyRation.textChanged.connect(self.configChanged)
+        self.__testWidget.cannyAperture.textChanged.connect(self.configChanged)
         self.__testWidget.pupilSizeMax.textChanged.connect(self.configChanged)
         self.__testWidget.pupilSizeMin.textChanged.connect(self.configChanged)
         self.__testWidget.strongPerimeterMin.textChanged.connect(self.configChanged)
@@ -218,18 +227,15 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.finalPerimeterMax.textChanged.connect(self.configChanged)
         self.__testWidget.ellipseSupportMinDist.textChanged.connect(self.configChanged)
         self.__testWidget.supportPixelRatio.textChanged.connect(self.configChanged)
-        self.__testWidget.coarseDetection.textChanged.connect(self.configChanged)
-        self.__testWidget.coarseFilterMin.textChanged.connect(self.configChanged)
-        self.__testWidget.coarseFilterMax.textChanged.connect(self.configChanged)
-        self.__testWidget.blurSize.textChanged.connect(self.configChanged)
-        self.__testWidget.cannyTreshold.textChanged.connect(self.configChanged)
-        self.__testWidget.cannyRation.textChanged.connect(self.configChanged)
-        self.__testWidget.cannyAperture.textChanged.connect(self.configChanged)
-        
 
 
+
+        # Manipulate config
+        # TODO: add reset to default button 
         self.__testWidget.saveParameters.setEnabled(False)
         self.__testWidget.saveParameters.clicked.connect(self.saveParameters)
+
+
         self.detector_2d.update_properties(self.detector_2d_config)
         self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
         self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
@@ -258,13 +264,41 @@ class MainWindow(FramelessMainWindow):
         #self.calibrationOverlay = None
 
     def configChanged(self):
-        size_min = int(self.__testWidget.pupilSizeMin.text()) if self.__testWidget.pupilSizeMin.text() != "" else None
-        size_max = int(self.__testWidget.pupilSizeMax.text()) if self.__testWidget.pupilSizeMax.text() != "" else None
+        pupil_size_min = int(self.__testWidget.pupilSizeMin.text()) if self.__testWidget.pupilSizeMin.text() != "" else None
+        pupil_size_max = int(self.__testWidget.pupilSizeMax.text()) if self.__testWidget.pupilSizeMax.text() != "" else None
+        strong_perimeter_min = float(self.__testWidget.strongPerimeterMin.text()) if self.__testWidget.strongPerimeterMin.text() != "" else None
+        strong_perimeter_max = float(self.__testWidget.strongPerimeterMax.text()) if self.__testWidget.strongPerimeterMax.text() != "" else None
+        strong_area_min = float(self.__testWidget.strongAreaMin.text()) if self.__testWidget.strongAreaMin.text() != "" else None
+        strong_area_max = float(self.__testWidget.strongAreaMax.text()) if self.__testWidget.strongAreaMax.text() != "" else None
+        final_perimeter_min = float(self.__testWidget.finalPerimeterMin.text()) if self.__testWidget.finalPerimeterMin.text() != "" else None
+        final_perimeter_max = float(self.__testWidget.finalPerimeterMax.text()) if self.__testWidget.finalPerimeterMax.text() != "" else None
+
         if self.__testWidget.focalLength.text() != "" and self.__testWidget.focalLength.text()[-1] != "." \
             and self.__testWidget.intensityRange.text() != "" \
             and self.__testWidget.pupilSizeMax.text() != "" \
-            and self.__testWidget.pupilSizeMin.text() != "":
-            if size_min is not None and size_max is not None and size_max > size_min:
+            and self.__testWidget.pupilSizeMin.text() != "" \
+            and self.__testWidget.blurSize.text() != "" \
+            and self.__testWidget.cannyTreshold.text() != "" \
+            and self.__testWidget.cannyRation.text() != "" \
+            and self.__testWidget.cannyAperture.text() != "" \
+            and self.__testWidget.coarseFilterMin.text() != "" \
+            and self.__testWidget.coarseFilterMax.text() != "" \
+            and self.__testWidget.coarseDetection.text() == "True" or self.__testWidget.coarseDetection.text() == "False" \
+            and self.__testWidget.contourSizeMin.text() != "" \
+            and self.__testWidget.strongPerimeterMin.text() != "" and self.__testWidget.strongPerimeterMin.text()[-1] != "." \
+            and self.__testWidget.strongPerimeterMax.text() != "" and self.__testWidget.strongPerimeterMax.text()[-1] != "." \
+            and self.__testWidget.strongAreaMin.text() != "" and self.__testWidget.strongAreaMin.text()[-1] != "." \
+            and self.__testWidget.strongAreaMax.text() != "" and self.__testWidget.strongAreaMax.text()[-1] != "." \
+            and self.__testWidget.ellipseRoudnessRatio.text != "" \
+            and self.__testWidget.initialEllipseTreshhold.text() != "" \
+            and self.__testWidget.finalPerimeterMin.text() != "" and self.__testWidget.finalPerimeterMin.text()[-1] != "." \
+            and self.__testWidget.finalPerimeterMax.text() != "" and self.__testWidget.finalPerimeterMax.text()[-1] != "." \
+            and self.__testWidget.ellipseSupportMinDist.text() != "" \
+            and self.__testWidget.supportPixelRatio.text() != "":
+            if pupil_size_min is not None and pupil_size_max is not None and pupil_size_max > pupil_size_min \
+                and strong_perimeter_min is not None and strong_perimeter_max is not None and strong_perimeter_max > strong_perimeter_min \
+                    and strong_area_min is not None and strong_area_max is not None and strong_area_max > strong_area_min \
+                        and final_perimeter_min is not None and final_perimeter_max is not None and final_perimeter_max > final_perimeter_min:
                 self.__testWidget.saveParameters.setEnabled(True)
             else:
                 self.__testWidget.saveParameters.setEnabled(False)
@@ -277,15 +311,35 @@ class MainWindow(FramelessMainWindow):
         self.config["detector_2d"]['intensity_range'] = int(self.__testWidget.intensityRange.text())
         self.config["detector_2d"]['pupil_size_max'] = int(self.__testWidget.pupilSizeMax.text())
         self.config["detector_2d"]['pupil_size_min'] = int(self.__testWidget.pupilSizeMin.text())
+        self.config["detector_2d"]['blur_size'] = int(self.__testWidget.blurSize.text())
+        self.config["detector_2d"]['canny_threshold'] = int(self.__testWidget.cannyTreshold.text())
+        self.config["detector_2d"]['canny_ration'] = int(self.__testWidget.cannyRation.text())
+        self.config["detector_2d"]['canny_aperture'] = int(self.__testWidget.cannyAperture.text())
+        self.config["detector_2d"]['coarse_filter_min'] = int(self.__testWidget.coarseFilterMin.text())
+        self.config["detector_2d"]['coarse_filter_max'] = int(self.__testWidget.coarseFilterMax.text())
+        self.config["detector_2d"]['coarse_detection'] = int(self.__testWidget.coarseDetection.text() == "True")
+        self.config["detector_2d"]['contour_size_min'] = int(self.__testWidget.contourSizeMin.text())
+        self.config["detector_2d"]['strong_perimeter_ratio_range_min'] = float(self.__testWidget.strongPerimeterMin.text())
+        self.config["detector_2d"]['strong_perimeter_ratio_range_max'] = float(self.__testWidget.strongPerimeterMax.text())
+        self.config["detector_2d"]['strong_area_ratio_range_min'] = float(self.__testWidget.strongAreaMin.text())
+        self.config["detector_2d"]['strong_area_ratio_range_max'] = float(self.__testWidget.strongAreaMax.text())
+        self.config["detector_2d"]['ellipse_roundness_ratio'] = float(self.__testWidget.ellipseRoudnessRatio.text())
+        self.config["detector_2d"]['initial_ellipse_fit_threshhold'] = float(self.__testWidget.initialEllipseTreshhold.text())
+        self.config["detector_2d"]['final_perimeter_ratio_range_min'] = float(self.__testWidget.finalPerimeterMin.text())
+        self.config["detector_2d"]['final_perimeter_ratio_range_max'] = float(self.__testWidget.finalPerimeterMax.text())
+        self.config["detector_2d"]['ellipse_true_support_min_dist'] = float(self.__testWidget.ellipseSupportMinDist.text())
+        self.config["detector_2d"]['support_pixel_ratio_exponent'] = float(self.__testWidget.supportPixelRatio.text())
         with open('config/config.json', 'w') as outfile:
             json.dump(self.config, outfile)
         self.detector_2d_config = self.config["detector_2d"]
+        self.detector_2d_config["coarse_detection"] = bool(self.detector_2d_config["coarse_detection"])
         self.detector_2d.update_properties(self.detector_2d_config)
         self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
         self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
         self.detectionRound = 0
 
         if self.clickedItem:
+            self.__testWidget.imageLabel.clear()
             self.imageClicked(self.clickedItem)
         self.rawDataFromDetection = {}
         self.__testWidget.saveParameters.setEnabled(False)
