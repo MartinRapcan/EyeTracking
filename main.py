@@ -226,7 +226,6 @@ class MainWindow(FramelessMainWindow):
 
 
         # Manipulate config
-        # TODO: add reset to default button 
         self.__testWidget.saveParameters.setEnabled(False)
         self.__testWidget.saveParameters.clicked.connect(self.saveParameters)
         self.__testWidget.resetParameters.clicked.connect(self.resetParameters)
