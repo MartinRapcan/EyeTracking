@@ -137,6 +137,9 @@ class MainWindow(FramelessMainWindow):
             self.detector_2d_config = self.config["detector_2d"]
             self.detector_2d_config["coarse_detection"] = bool(self.detector_2d_config["coarse_detection"])
 
+        with open('config/default.json') as json_file:
+            self.default_config = json.load(json_file)
+
         # Camera config values
         self.__testWidget.focalLength.setText(str(self.config['focal_length']))
 
@@ -226,6 +229,7 @@ class MainWindow(FramelessMainWindow):
         # TODO: add reset to default button 
         self.__testWidget.saveParameters.setEnabled(False)
         self.__testWidget.saveParameters.clicked.connect(self.saveParameters)
+        self.__testWidget.resetParameters.clicked.connect(self.resetParameters)
 
 
         self.detector_2d.update_properties(self.detector_2d_config)
@@ -335,6 +339,30 @@ class MainWindow(FramelessMainWindow):
             self.imageClicked(self.clickedItem)
         self.rawDataFromDetection = {}
         self.__testWidget.saveParameters.setEnabled(False)
+
+    def resetParameters(self):
+        self.__testWidget.focalLength.setText(str(self.default_config['focal_length']))
+        self.__testWidget.intensityRange.setText(str(self.default_config["detector_2d"]['intensity_range']))
+        self.__testWidget.pupilSizeMax.setText(str(self.default_config["detector_2d"]['pupil_size_max']))
+        self.__testWidget.pupilSizeMin.setText(str(self.default_config["detector_2d"]['pupil_size_min']))
+        self.__testWidget.blurSize.setText(str(self.default_config["detector_2d"]['blur_size']))
+        self.__testWidget.cannyTreshold.setText(str(self.default_config["detector_2d"]['canny_threshold']))
+        self.__testWidget.cannyRation.setText(str(self.default_config["detector_2d"]['canny_ration']))
+        self.__testWidget.cannyAperture.setText(str(self.default_config["detector_2d"]['canny_aperture']))
+        self.__testWidget.coarseFilterMin.setText(str(self.default_config["detector_2d"]['coarse_filter_min']))
+        self.__testWidget.coarseFilterMax.setText(str(self.default_config["detector_2d"]['coarse_filter_max']))
+        self.__testWidget.coarseDetection.setText(str(bool(self.default_config["detector_2d"]['coarse_detection'])))
+        self.__testWidget.contourSizeMin.setText(str(self.default_config["detector_2d"]['contour_size_min']))
+        self.__testWidget.strongPerimeterMin.setText(str(self.default_config["detector_2d"]['strong_perimeter_ratio_range_min']))
+        self.__testWidget.strongPerimeterMax.setText(str(self.default_config["detector_2d"]['strong_perimeter_ratio_range_max']))
+        self.__testWidget.strongAreaMin.setText(str(self.default_config["detector_2d"]['strong_area_ratio_range_min']))
+        self.__testWidget.strongAreaMax.setText(str(self.default_config["detector_2d"]['strong_area_ratio_range_max']))
+        self.__testWidget.ellipseRoudnessRatio.setText(str(self.default_config["detector_2d"]['ellipse_roundness_ratio']))
+        self.__testWidget.initialEllipseTreshhold.setText(str(self.default_config["detector_2d"]['initial_ellipse_fit_threshhold']))
+        self.__testWidget.finalPerimeterMin.setText(str(self.default_config["detector_2d"]['final_perimeter_ratio_range_min']))
+        self.__testWidget.finalPerimeterMax.setText(str(self.default_config["detector_2d"]['final_perimeter_ratio_range_max']))
+        self.__testWidget.ellipseSupportMinDist.setText(str(self.default_config["detector_2d"]['ellipse_true_support_min_dist']))
+        self.__testWidget.supportPixelRatio.setText(str(self.default_config["detector_2d"]['support_pixel_ratio_exponent']))
 
     def loadImage(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.png *.jpeg)")
@@ -571,18 +599,18 @@ class MainWindow(FramelessMainWindow):
         #     self.__testWidget.imgLabel.clear()
 
     def displayImage(self, img, window=1):
-        qformat = QtGui.QImage.Format_Indexed8
+        qformat = QImage.Format_Indexed8
 
         if len(img.shape) == 3:
             if img.shape[2] == 4:
-                qformat = QtGui.QImage.Format_RGBA8888
+                qformat = QImage.Format_RGBA8888
             else:
-                qformat = QtGui.QImage.Format_RGB888
+                qformat = QImage.Format_RGB888
 
-        outImage = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], qformat)
+        outImage = QImage(img, img.shape[1], img.shape[0], img.strides[0], qformat)
         outImage = outImage.rgbSwapped()
         if window == 1:
-            self.__testWidget.imageLabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
+            self.__testWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
             self.__testWidget.imageLabel.setScaledContents(True)
         # else:
         #     self.__testWidget.imagePreview.setPixmap(QtGui.QPixmap.fromImage(outImage))
@@ -626,7 +654,7 @@ class MainWindow(FramelessMainWindow):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     app.setStyleSheet("QMainWindow {background: '#171923';}") 
     window = MainWindow()
     window.show()
