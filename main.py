@@ -674,3 +674,4 @@ if __name__ == "__main__":
 # TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
 # TODO: pre kameru pridať velkosť obrazku do configu
 # TODO: filter requirements
+# TODO: default config .. pre 3D zmeniť ten blocking and boolean

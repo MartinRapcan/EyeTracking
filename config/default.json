@@ -22,5 +22,19 @@
        "ellipse_true_support_min_dist":2.5,
        "support_pixel_ratio_exponent":2.0
     },
+    "detector_3d":{
+       "threshold_swirski": 0.7,
+        "threshold_kalman": 0.98,
+        "threshold_short_term": 0.8,
+        "threshold_long_term": 0.98,
+        "long_term_buffer_size": 30,
+        "long_term_forget_time": 5,
+        "long_term_forget_observations": 300,
+        "long_term_mode": 0,
+        "model_update_interval_long_term": 1.0,
+        "model_update_interval_ult_long_term": 10.0,
+        "model_warmup_duration": 5.0,
+        "calculate_rms_residual": 0
+    },
     "focal_length":561.5
  }
