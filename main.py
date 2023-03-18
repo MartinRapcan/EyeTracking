@@ -166,10 +166,25 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.ellipseSupportMinDist.setText(str(self.config["detector_2d"]['ellipse_true_support_min_dist']))
         self.__testWidget.supportPixelRatio.setText(str(self.config["detector_2d"]['support_pixel_ratio_exponent']))
 
+        # Detector 3D config values
+        self.__testWidget.thresholdSwirski.setText(str(self.config["detector_3d"]['threshold_swirski']))
+        self.__testWidget.thresholdKalman.setText(str(self.config["detector_3d"]['threshold_kalman']))
+        self.__testWidget.thresholdShortTerm.setText(str(self.config["detector_3d"]['threshold_short_term']))
+        self.__testWidget.thresholdLongTerm.setText(str(self.config["detector_3d"]['threshold_long_term']))
+        self.__testWidget.longTermBufferSize.setText(str(self.config["detector_3d"]['long_term_buffer_size']))
+        self.__testWidget.longTermForgetTime.setText(str(self.config["detector_3d"]['long_term_forget_time']))
+        self.__testWidget.longTermForgetObservations.setText(str(self.config["detector_3d"]['long_term_forget_observations']))
+        self.__testWidget.longTermMode.setText("asynchronous" if str(self.config["detector_3d"]['long_term_mode']) == "1" else "blocking")
+        self.__testWidget.modelUpdateIntervalLongTerm.setText(str(self.config["detector_3d"]['model_update_interval_long_term']))
+        self.__testWidget.modelUpdateIntervalUltLongTerm.setText(str(self.config["detector_3d"]['model_update_interval_ult_long_term']))
+        self.__testWidget.modelWarmupDuration.setText(str(self.config["detector_3d"]['model_warmup_duration']))
+        self.__testWidget.calculateRmsResidual.setText(str(bool(self.config["detector_3d"]['calculate_rms_residual'])))
+
         # Validators
         floatingRegex = QRegularExpression("^(0|[1-9]\\d*)(\\.\\d+)?$")
         integerRegex = QRegularExpression("^0|[1-9]\\d*$")
         boolRegex = QRegularExpression("^True|False$")
+        detectorModeRegex = QRegularExpression("^blocking|asynchronous$")
 
         # Camera validation
         self.__testWidget.focalLength.setValidator(QRegularExpressionValidator(floatingRegex))
@@ -196,6 +211,9 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.finalPerimeterMax.setValidator(QRegularExpressionValidator(floatingRegex))
         self.__testWidget.ellipseSupportMinDist.setValidator(QRegularExpressionValidator(floatingRegex))
         self.__testWidget.supportPixelRatio.setValidator(QRegularExpressionValidator(floatingRegex))
+
+        # Detector 3D validation
+        # TODO: pridať validáciu pre ostatné hodnoty
 
         # Camera event listeners
         self.__testWidget.focalLength.textChanged.connect(self.configChanged)
