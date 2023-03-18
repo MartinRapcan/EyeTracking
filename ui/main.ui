@@ -100,7 +100,7 @@ QPushButton:disabled {
     <string>Start Detection</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="stopButton">
+  <widget class="QPushButton" name="reanalyze">
    <property name="geometry">
     <rect>
      <x>990</x>
@@ -129,7 +129,7 @@ background-color: #ccba18;
 }</string>
    </property>
    <property name="text">
-    <string>Stop Detection</string>
+    <string>Reanalyze</string>
    </property>
   </widget>
   <widget class="QLabel" name="imagePath">
@@ -2559,7 +2559,7 @@ QScrollBar::add-page:vertical {
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>-281</y>
+       <y>0</y>
        <width>300</width>
        <height>492</height>
       </rect>
@@ -3596,6 +3596,41 @@ font-weight: bold;
       </item>
      </layout>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="uploadSave">
+    <property name="geometry">
+     <rect>
+      <x>992</x>
+      <y>164</y>
+      <width>100</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
+}</string>
+    </property>
+    <property name="text">
+     <string>Load saved</string>
+    </property>
    </widget>
   </widget>
  </widget>

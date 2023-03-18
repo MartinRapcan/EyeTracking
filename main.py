@@ -213,7 +213,7 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.supportPixelRatio.setValidator(QRegularExpressionValidator(floatingRegex))
 
         # Detector 3D validation
-        # TODO: pridať validáciu pre ostatné hodnoty
+
 
         # Camera event listeners
         self.__testWidget.focalLength.textChanged.connect(self.configChanged)
@@ -503,26 +503,26 @@ class MainWindow(FramelessMainWindow):
                 self.imagesPaths[listImageName] = newPath
 
             image = cv2.imread(newPath)
-            # read video frame as numpy array
+
             grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            # run 2D detector on video frame
+
             result_2d = self.detector_2d.detect(grayscale_array)
             result_2d["timestamp"] = i
-            # pass 2D detection result to 3D detector
+
             result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array, apply_refraction_correction=False)
 
             if self.detectionRound == 1:
                 self.rawDataFromDetection[i] = result_3d
             ellipse_3d = result_3d["ellipse"]
-            # draw 3D detection result on eye frame
+
             cv2.ellipse(
                 image,
                 tuple(int(v) for v in ellipse_3d["center"]),
                 tuple(int(v / 2) for v in ellipse_3d["axes"]),
                 ellipse_3d["angle"],
                 0,
-                360,  # start/end angle for drawing
-                (0, 255, 0),  # color (BGR): red
+                360,
+                (0, 255, 0),  
             )
 
             self.displayImage(image, 1)
@@ -532,25 +532,17 @@ class MainWindow(FramelessMainWindow):
         self.clickedItem = item
 
         image = cv2.imread(self.imagesPaths[item.text()])
-        # read video frame as numpy array
         grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # run 2D detector on video frame
         result_2d = self.detector_2d.detect(grayscale_array)
 
-        result_2d["timestamp"] = list(self.imagesPaths.keys()).index(item.text())
-        # pass 2D detection result to 3D detector
-        result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array, apply_refraction_correction=False)
-
-        ellipse_3d = result_3d["ellipse"]
-        # draw 3D detection result on eye frame
         cv2.ellipse(
             image,
-            tuple(int(v) for v in ellipse_3d["center"]),
-            tuple(int(v / 2) for v in ellipse_3d["axes"]),
-            ellipse_3d["angle"],
+            tuple(int(v) for v in result_2d["center"]),
+            tuple(int(v / 2) for v in result_2d["axes"]),
+            result_2d["angle"],
             0,
-            360,  # start/end angle for drawing
-            (0, 255, 0),  # color (BGR): red
+            360,
+            (0, 255, 0), 
         )
 
         self.displayImage(image, 1)
