@@ -8,92 +8,15 @@ import json
 from PySide6.QtCore import Qt
 from pyqt_frameless_window import FramelessMainWindow
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QPixmap, QImage, QPalette, QBrush, QIcon, QTransform, QColor, QRegularExpressionValidator
-from PySide6.QtCore import QFile, QObject, QThread, Signal, Slot, QTimer, QRegularExpression
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QDialog, QHBoxLayout, QLabel, QTextEdit, QPushButton, QWidget, QVBoxLayout, QSplashScreen, QProgressBar, QStyleFactory
-from os.path import isfile, join
+from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
+from PySide6.QtCore import QFile, QRegularExpression
+from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget
 from pupil_detectors import Detector2D
 from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
-# generate ui pyside6-uic ./ui/main.ui > ui_mainwindow.py
-
-def main(path):
-    # create 2D detector
-    detector_2d = Detector2D()
-    # create pye3D detector
-    camera = CameraModel(focal_length=561.5, resolution=[400, 400])
-    detector_3d = Detector3D(camera=camera, long_term_mode=DetectorMode.blocking)
-    
-    eye_coordinates = ()
-    eye_video = cv2.VideoCapture(path)
-    # read each frame of video and run pupil detectors
-    while eye_video.isOpened():
-        frame_number = eye_video.get(cv2.CAP_PROP_POS_FRAMES)
-        fps = eye_video.get(cv2.CAP_PROP_FPS)
-        ret, eye_frame = eye_video.read()
-    
-        if ret:
-            # dobre pre iris ...
-            #(thresh, blackAndWhiteImage) = cv2.threshold(eye_frame, 50, 255, cv2.THRESH_TOZERO_INV)
-            # (thresh, blackAndWhiteImage) = cv2.threshold(eye_frame, 120, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C)
-            # cv2.GaussianBlur(blackAndWhiteImage, (17, 17), cv2.BORDER_DEFAULT)
-            # cv2.medianBlur(blackAndWhiteImage, 21)
-
-            # edges = cv2.Canny(blackAndWhiteImage, 100, 200)
-            # cv2.imshow('frame', blackAndWhiteImage)
-            # cv2.imshow('edges', edges)
-
-            # read video frame as numpy array
-            grayscale_array = cv2.cvtColor(eye_frame, cv2.COLOR_BGR2GRAY)
-            # run 2D detector on video frame
-            result_2d = detector_2d.detect(grayscale_array)
-
-            result_2d["timestamp"] = frame_number / fps
-            # pass 2D detection result to 3D detector
-            result_3d = detector_3d.update_and_detect(result_2d, grayscale_array)
-
-            ellipse_3d = result_3d["ellipse"]
-            
-            #print(ellipse_3d)
-            # draw 3D detection result on eye frame
-            cv2.ellipse(
-                eye_frame,
-                tuple(int(v) for v in ellipse_3d["center"]),
-                tuple(int(v / 2) for v in ellipse_3d["axes"]),
-                ellipse_3d["angle"],
-                0,
-                360,  # start/end angle for drawing
-                (0, 255, 0),  # color (BGR): red
-            )
-            cv2.circle(
-                eye_frame,
-                tuple(int(v) for v in ellipse_3d["center"]),
-                2,
-                (0, 0, 255),  # color (BGR): blue
-                thickness=-2,
-            )
-            # show frame
-            cv2.imshow("eye_frame", eye_frame)
-            # press esc to exit
-            if cv2.waitKey(1) & 0xFF == 27:
-                break
-        else:
-            break
-    eye_video.release()
-    cv2.destroyAllWindows()
-
-def create_video(path, name, resolution):
-    if resolution and path and name:
-        images = [f for f in os.listdir(path) if isfile(join(path, f))]
-        # i have one image in my folder make it like 1000 images
-        images = images * 1000
-        video = cv2.VideoWriter(f'dataset/{name}.avi', cv2.VideoWriter_fourcc(*'XVID'), 30, resolution)
-        for image in images:
-            img = cv2.imread(path + image)
-            video.write(img)
-        video.release()
 
 class MainWindow(FramelessMainWindow):
     detector_2d = Detector2D()
+    previewDetector2d = Detector2D()
     camera = None
     detector_3d = None
     images = {}
@@ -112,6 +35,7 @@ class MainWindow(FramelessMainWindow):
     imagesPaths = {}
     rawDataFromDetection = {}
     clickedItem = None
+    image = None
 
     def __init__(self):
         super().__init__()
@@ -134,6 +58,8 @@ class MainWindow(FramelessMainWindow):
 
         with open('config/config.json') as json_file:
             self.config = json.load(json_file)
+            json_file.seek(0)
+            self.original_config = json.load(json_file)
             self.detector_2d_config = self.config["detector_2d"]
             self.detector_2d_config["coarse_detection"] = bool(self.detector_2d_config["coarse_detection"])
 
@@ -213,7 +139,18 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.supportPixelRatio.setValidator(QRegularExpressionValidator(floatingRegex))
 
         # Detector 3D validation
-
+        self.__testWidget.thresholdSwirski.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__testWidget.thresholdKalman.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__testWidget.thresholdShortTerm.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__testWidget.thresholdLongTerm.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__testWidget.longTermBufferSize.setValidator(QRegularExpressionValidator(integerRegex))
+        self.__testWidget.longTermForgetTime.setValidator(QRegularExpressionValidator(integerRegex))
+        self.__testWidget.longTermForgetObservations.setValidator(QRegularExpressionValidator(integerRegex))
+        self.__testWidget.longTermMode.setValidator(QRegularExpressionValidator(detectorModeRegex))
+        self.__testWidget.modelUpdateIntervalLongTerm.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__testWidget.modelUpdateIntervalUltLongTerm.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__testWidget.modelWarmupDuration.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__testWidget.calculateRmsResidual.setValidator(QRegularExpressionValidator(boolRegex))
 
         # Camera event listeners
         self.__testWidget.focalLength.textChanged.connect(self.configChanged)
@@ -241,40 +178,43 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.ellipseSupportMinDist.textChanged.connect(self.configChanged)
         self.__testWidget.supportPixelRatio.textChanged.connect(self.configChanged)
 
-
+        # Detector 3D event listeners
+        self.__testWidget.thresholdSwirski.textChanged.connect(self.configChanged)
+        self.__testWidget.thresholdKalman.textChanged.connect(self.configChanged)
+        self.__testWidget.thresholdShortTerm.textChanged.connect(self.configChanged)
+        self.__testWidget.thresholdLongTerm.textChanged.connect(self.configChanged)
+        self.__testWidget.longTermBufferSize.textChanged.connect(self.configChanged)
+        self.__testWidget.longTermForgetTime.textChanged.connect(self.configChanged)
+        self.__testWidget.longTermForgetObservations.textChanged.connect(self.configChanged)
+        self.__testWidget.longTermMode.textChanged.connect(self.configChanged)
+        self.__testWidget.modelUpdateIntervalLongTerm.textChanged.connect(self.configChanged)
+        self.__testWidget.modelUpdateIntervalUltLongTerm.textChanged.connect(self.configChanged)
+        self.__testWidget.modelWarmupDuration.textChanged.connect(self.configChanged)
+        self.__testWidget.calculateRmsResidual.textChanged.connect(self.configChanged)
 
         # Manipulate config
         self.__testWidget.saveParameters.setEnabled(False)
         self.__testWidget.saveParameters.clicked.connect(self.saveParameters)
         self.__testWidget.resetParameters.clicked.connect(self.resetParameters)
+        self.__testWidget.uploadSaved.clicked.connect(self.uploadSavedParameters)
 
-
+        # Setup scripts
         self.detector_2d.update_properties(self.detector_2d_config)
+        self.previewDetector2d.update_properties(self.detector_2d_config)
         self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
         self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
 
-
-        #print(dir(titleBar))
-        #print(titleBar.children())
-        # use findchildren to find QPushButtons
         for button in titleBar.findChildren(QPushButton):
             button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
-        self.image = None
         self.__testWidget.listImages.itemClicked.connect(self.imageClicked)
         self.__testWidget.startButton.setEnabled(False)
         self.__testWidget.startButton.clicked.connect(self.startDetection)
-        self.__testWidget.stopButton.clicked.connect(self.stopDetection)
+        self.__testWidget.reanalyze.clicked.connect(self.reanalyze)
         self.__testWidget.loadImage.clicked.connect(self.loadImage)
         self.__testWidget.imagePath.setText("No image selected")
         self.__testWidget.imagePath.setText(self.__testWidget.imagePath.fontMetrics().elidedText(self.__testWidget.imagePath.text(), Qt.ElideRight, self.__testWidget.imagePath.width()))
-        #self.__testWidget.removeImage.clicked.connect(self.removeImage)
-        #self.__testWidget.slideShow.clicked.connect(self.slideShow)
-        #self.__testWidget.videoPicker.clicked.connect(self.videoPicker)
-        #self.__testWidget.startCalibrationButton.clicked.connect(self.openCalibration)
-        #self.slideShowOverlay = None
-        #self.calibrationOverlay = None
 
     def configChanged(self):
         pupil_size_min = int(self.__testWidget.pupilSizeMin.text()) if self.__testWidget.pupilSizeMin.text() != "" else None
@@ -286,7 +226,19 @@ class MainWindow(FramelessMainWindow):
         final_perimeter_min = float(self.__testWidget.finalPerimeterMin.text()) if self.__testWidget.finalPerimeterMin.text() != "" else None
         final_perimeter_max = float(self.__testWidget.finalPerimeterMax.text()) if self.__testWidget.finalPerimeterMax.text() != "" else None
 
-        if self.__testWidget.focalLength.text() != "" and self.__testWidget.focalLength.text()[-1] != "." \
+        if self.__testWidget.focalLength.text() != ""  \
+            and self.__testWidget.thresholdSwirski.text() != "" \
+            and self.__testWidget.thresholdKalman.text() != "" \
+            and self.__testWidget.thresholdShortTerm.text() != "" \
+            and self.__testWidget.thresholdLongTerm.text() != "" \
+            and self.__testWidget.longTermBufferSize.text() != "" \
+            and self.__testWidget.longTermForgetTime.text() != "" \
+            and self.__testWidget.longTermForgetObservations.text() != "" \
+            and self.__testWidget.longTermMode.text() == "blocking" or self.__testWidget.longTermMode.text() == "asynchronous" \
+            and self.__testWidget.modelUpdateIntervalLongTerm.text() != "" \
+            and self.__testWidget.modelUpdateIntervalUltLongTerm.text() != "" \
+            and self.__testWidget.modelWarmupDuration.text() != "" \
+            and self.__testWidget.calculateRmsResidual.text() == "True" or self.__testWidget.calculateRmsResidual.text() == "False" \
             and self.__testWidget.intensityRange.text() != "" \
             and self.__testWidget.pupilSizeMax.text() != "" \
             and self.__testWidget.pupilSizeMin.text() != "" \
@@ -298,28 +250,28 @@ class MainWindow(FramelessMainWindow):
             and self.__testWidget.coarseFilterMax.text() != "" \
             and self.__testWidget.coarseDetection.text() == "True" or self.__testWidget.coarseDetection.text() == "False" \
             and self.__testWidget.contourSizeMin.text() != "" \
-            and self.__testWidget.strongPerimeterMin.text() != "" and self.__testWidget.strongPerimeterMin.text()[-1] != "." \
-            and self.__testWidget.strongPerimeterMax.text() != "" and self.__testWidget.strongPerimeterMax.text()[-1] != "." \
-            and self.__testWidget.strongAreaMin.text() != "" and self.__testWidget.strongAreaMin.text()[-1] != "." \
-            and self.__testWidget.strongAreaMax.text() != "" and self.__testWidget.strongAreaMax.text()[-1] != "." \
+            and self.__testWidget.strongPerimeterMin.text() != "" \
+            and self.__testWidget.strongPerimeterMax.text() != "" \
+            and self.__testWidget.strongAreaMin.text() != "" \
+            and self.__testWidget.strongAreaMax.text() != "" \
             and self.__testWidget.ellipseRoudnessRatio.text != "" \
             and self.__testWidget.initialEllipseTreshhold.text() != "" \
-            and self.__testWidget.finalPerimeterMin.text() != "" and self.__testWidget.finalPerimeterMin.text()[-1] != "." \
-            and self.__testWidget.finalPerimeterMax.text() != "" and self.__testWidget.finalPerimeterMax.text()[-1] != "." \
+            and self.__testWidget.finalPerimeterMin.text() != "" \
+            and self.__testWidget.finalPerimeterMax.text() != "" \
             and self.__testWidget.ellipseSupportMinDist.text() != "" \
             and self.__testWidget.supportPixelRatio.text() != "":
             if pupil_size_min is not None and pupil_size_max is not None and pupil_size_max > pupil_size_min \
                 and strong_perimeter_min is not None and strong_perimeter_max is not None and strong_perimeter_max > strong_perimeter_min \
                     and strong_area_min is not None and strong_area_max is not None and strong_area_max > strong_area_min \
                         and final_perimeter_min is not None and final_perimeter_max is not None and final_perimeter_max > final_perimeter_min:
-                self.__testWidget.saveParameters.setEnabled(True)
+                self.setParameters()
             else:
                 self.__testWidget.saveParameters.setEnabled(False)
 
         else:
             self.__testWidget.saveParameters.setEnabled(False)
     
-    def saveParameters(self):
+    def setParameters(self):
         self.config['focal_length'] = float(self.__testWidget.focalLength.text())
         self.config["detector_2d"]['intensity_range'] = int(self.__testWidget.intensityRange.text())
         self.config["detector_2d"]['pupil_size_max'] = int(self.__testWidget.pupilSizeMax.text())
@@ -342,20 +294,9 @@ class MainWindow(FramelessMainWindow):
         self.config["detector_2d"]['final_perimeter_ratio_range_max'] = float(self.__testWidget.finalPerimeterMax.text())
         self.config["detector_2d"]['ellipse_true_support_min_dist'] = float(self.__testWidget.ellipseSupportMinDist.text())
         self.config["detector_2d"]['support_pixel_ratio_exponent'] = float(self.__testWidget.supportPixelRatio.text())
-        with open('config/config.json', 'w') as outfile:
-            json.dump(self.config, outfile)
         self.detector_2d_config = self.config["detector_2d"]
         self.detector_2d_config["coarse_detection"] = bool(self.detector_2d_config["coarse_detection"])
-        self.detector_2d.update_properties(self.detector_2d_config)
-        self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
-        self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
-        self.detectionRound = 0
-
-        if self.clickedItem:
-            self.__testWidget.imageLabel.clear()
-            self.imageClicked(self.clickedItem)
-        self.rawDataFromDetection = {}
-        self.__testWidget.saveParameters.setEnabled(False)
+        self.__testWidget.saveParameters.setEnabled(True)
 
     def resetParameters(self):
         self.__testWidget.focalLength.setText(str(self.default_config['focal_length']))
@@ -380,6 +321,45 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.finalPerimeterMax.setText(str(self.default_config["detector_2d"]['final_perimeter_ratio_range_max']))
         self.__testWidget.ellipseSupportMinDist.setText(str(self.default_config["detector_2d"]['ellipse_true_support_min_dist']))
         self.__testWidget.supportPixelRatio.setText(str(self.default_config["detector_2d"]['support_pixel_ratio_exponent']))
+        self.config = self.default_config
+
+    def saveParameters(self):
+        with open('config/config.json', 'w') as outfile:
+            json.dump(self.config, outfile)
+        self.__testWidget.saveParameters.setEnabled(False)
+
+    def uploadSavedParameters(self):
+        self.__testWidget.focalLength.setText(str(self.original_config['focal_length']))
+        self.__testWidget.coarseDetection.setText(str(bool(self.original_config["detector_2d"]['coarse_detection'])))
+        self.__testWidget.coarseFilterMin.setText(str(self.original_config["detector_2d"]['coarse_filter_min']))
+        self.__testWidget.coarseFilterMax.setText(str(self.original_config["detector_2d"]['coarse_filter_max'])) 
+        self.__testWidget.intensityRange.setText(str(self.original_config["detector_2d"]['intensity_range']))
+        self.__testWidget.blurSize.setText(str(self.original_config["detector_2d"]['blur_size']))
+        self.__testWidget.cannyTreshold.setText(str(self.original_config["detector_2d"]['canny_threshold']))
+        self.__testWidget.cannyRation.setText(str(self.original_config["detector_2d"]['canny_ration']))
+        self.__testWidget.cannyAperture.setText(str(self.original_config["detector_2d"]['canny_aperture']))
+        self.__testWidget.pupilSizeMax.setText(str(self.original_config["detector_2d"]['pupil_size_max']))
+        self.__testWidget.pupilSizeMin.setText(str(self.original_config["detector_2d"]['pupil_size_min']))
+        self.__testWidget.strongPerimeterMin.setText(str(self.original_config["detector_2d"]['strong_perimeter_ratio_range_min']))
+        self.__testWidget.strongPerimeterMax.setText(str(self.original_config["detector_2d"]['strong_perimeter_ratio_range_max']))
+        self.__testWidget.strongAreaMin.setText(str(self.original_config["detector_2d"]['strong_area_ratio_range_min']))
+        self.__testWidget.strongAreaMax.setText(str(self.original_config["detector_2d"]['strong_area_ratio_range_max']))
+        self.__testWidget.contourSizeMin.setText(str(self.original_config["detector_2d"]['contour_size_min']))
+        self.__testWidget.ellipseRoudnessRatio.setText(str(self.original_config["detector_2d"]['ellipse_roundness_ratio']))
+        self.__testWidget.initialEllipseTreshhold.setText(str(self.original_config["detector_2d"]['initial_ellipse_fit_threshhold']))
+        self.__testWidget.finalPerimeterMin.setText(str(self.original_config["detector_2d"]['final_perimeter_ratio_range_min'])) 
+        self.__testWidget.finalPerimeterMax.setText(str(self.original_config["detector_2d"]['final_perimeter_ratio_range_max']))
+        self.__testWidget.ellipseSupportMinDist.setText(str(self.original_config["detector_2d"]['ellipse_true_support_min_dist']))
+        self.__testWidget.supportPixelRatio.setText(str(self.original_config["detector_2d"]['support_pixel_ratio_exponent']))
+
+    def reanalyze(self):
+        self.detector_2d.update_properties(self.detector_2d_config)
+        self.previewDetector2d.update_properties(self.detector_2d_config)
+        self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
+        self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
+        self.detectionRound = 0
+        self.rawDataFromDetection = {}
+        self.startDetection()
 
     def loadImage(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.png *.jpeg)")
@@ -412,80 +392,13 @@ class MainWindow(FramelessMainWindow):
             self.__testWidget.startButton.setEnabled(False)
             self.__testWidget.listImages.clear()
             self.__testWidget.imageLabel.clear()
-                #self.images[imageName] = QtGui.QImage(fname[0])
-                #self.__testWidget.listImages.addItem(imageName)
-
-    # def videoPicker(self):
-    #     fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Video files (*.mp4 *.avi *.mov *.mkv)")
-    #     if fname[0] != "":
-    #         videoName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
-    #         self.videoPath = fname[0]
-    #         self.__testWidget.videoPath.setText(videoName)
-    #     else:
-    #         self.videoPath = None
-    #         self.__testWidget.videoPath.setText("")
-
-    # def removeImage(self):
-    #     if self.__testWidget.listImages.currentItem():
-    #         self.images.pop(self.__testWidget.listImages.currentItem().text())
-    #         self.__testWidget.listImages.takeItem(self.__testWidget.listImages.currentRow())
-
-    # def slideShow(self):
-    #     if self.timerWeb is not None and self.timerWeb.isActive() and self.__testWidget.listImages.count() > 0:
-    #         if not self.slideShowOverlay:
-    #             ui = QFile("ui/fullScreenSlideShowOverlay.ui")
-    #             ui.open(QFile.ReadOnly)
-    #             self.slideShowOverlay = self.loader.load(ui)
-    #             ui.close()
-    #         if self.__testWidget.listImages.count() > 1:
-    #             self.slideShowOverlay.next.show()
-    #             self.slideShowOverlay.end.hide()
-    #         else:
-    #             self.slideShowOverlay.next.hide()
-    #             self.slideShowOverlay.end.show()
-    #         self.slideShowOverlay.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-    #         self.slideShowOverlay.showFullScreen()
-    #         self.slideShowOverlay.marker.setPixmap(QtGui.QPixmap("public/marker.png").scaled(80, 80, QtCore.Qt.KeepAspectRatio))
-    #         self.slideShowOverlay.next.clicked.connect(self.nextImage)
-    #         self.slideShowOverlay.end.clicked.connect(self.endSlideShow)
-
-    #         self.imageB = self.__testWidget.listImages.item(0).text()
-    #         #self.overlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB])
-    #         #.scaled(self.overlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation))
-
-    #         # if the width and height of the image is greater than the width and height of the label
-    #         if self.images[self.imageB].width() > self.slideShowOverlay.image.width() or self.images[self.imageB].height() > self.slideShowOverlay.image.height():
-    #             self.slideShowOverlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.slideShowOverlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-    #         else:
-    #             self.slideShowOverlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
-    #         self.slideShowOverlay.image.setAlignment(QtCore.Qt.AlignCenter)
-
-    # def endSlideShow(self):
-    #     self.slideShowOverlay.close()
-
-    # def previousImage(self):
-    #     pass
-            
-    # def nextImage(self):
-    #     if self.imageB != list(self.images.keys())[-1]:
-    #         self.imageB = list(self.images.keys())[list(self.images.keys()).index(self.imageB) + 1]
-    #         if self.images[self.imageB].width() > self.slideShowOverlay.image.width() or self.images[self.imageB].height() > self.slideShowOverlay.image.height():
-    #             self.slideShowOverlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]).scaled(self.slideShowOverlay.image.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-    #         else:
-    #             self.slideShowOverlay.image.setPixmap(QtGui.QPixmap.fromImage(self.images[self.imageB]))
-    #         self.slideShowOverlay.image.setAlignment(QtCore.Qt.AlignCenter)
-    #         if self.imageB == list(self.images.keys())[-1]:
-    #             self.slideShowOverlay.next.hide()
-    #             self.slideShowOverlay.end.show()
-    #     else:
-    #         self.slideShowOverlay.next.hide()
-    #         self.slideShowOverlay.end.show()
 
     def startDetection(self):
         if self.imagePath:
             if self.detectionRound == 0:
                 self.renderImage()
-                self.fillImageList = 1
+                if self.fillImageList == 0:
+                    self.fillImageList = 1
                 self.detectionRound = 1
                 self.renderImage()
             else:
@@ -533,7 +446,7 @@ class MainWindow(FramelessMainWindow):
 
         image = cv2.imread(self.imagesPaths[item.text()])
         grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        result_2d = self.detector_2d.detect(grayscale_array)
+        result_2d = self.previewDetector2d.detect(grayscale_array)
 
         cv2.ellipse(
             image,
@@ -547,65 +460,8 @@ class MainWindow(FramelessMainWindow):
 
         self.displayImage(image, 1)
 
-
-        # if self.imagePath:
-        #     self.captureWeb = cv2.VideoCapture(self.imagePath)
-        # else:
-        #     self.captureWeb = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-
-        # self.captureWeb.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        # self.captureWeb.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        # self.captureWeb.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-        # self.captureWeb.set(cv2.CAP_PROP_FPS, 60)
-        # self.captureWeb.set(cv2.CAP_PROP_POS_MSEC, 0)
-
-        # self.timerWeb = QtCore.QTimer()
-        # self.timerWeb.timeout.connect(self.update_frame)
-        # self.timerWeb.start(5)
-
-    # def update_frame(self):
-    #     ret, self.image = self.captureWeb.read()
-    #     frame_number = self.captureWeb.get(cv2.CAP_PROP_POS_FRAMES)
-    #     fps = self.captureWeb.get(cv2.CAP_PROP_FPS)
-
-    #     if ret and not self.isPaused:
-    #         grayscale_array = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-    #         result_2d = self.detector_2d.detect(grayscale_array)
-    #         result_2d["timestamp"] = frame_number / fps
-    #         result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array)
-    #         ellipse_3d = result_3d["ellipse"]
-    #         self.angle = round(float(ellipse_3d["angle"]), 2)
-
-    #         cv2.ellipse(
-    #             self.image,
-    #             tuple(int(v) for v in ellipse_3d["center"]),
-    #             tuple(int(v / 2) for v in ellipse_3d["axes"]),
-    #             ellipse_3d["angle"],
-    #             0,
-    #             360,  # start/end angle for drawing
-    #             (0, 255, 0),  # color (BGR): red
-    #         )
-    #         cv2.circle(
-    #             self.image,
-    #             tuple(int(v) for v in ellipse_3d["center"]),
-    #             2,
-    #             (0, 0, 255),  # color (BGR): blue
-    #             thickness=-2,
-    #         )
-
-    #         font = cv2.FONT_HERSHEY_SIMPLEX
-    #         cv2.putText(self.image, f'Angle: {self.angle}', (5, 30), font, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-    #         self.displayImage(self.image, 1)
-    #         cv2.waitKey(15)
-    #     else:
-    #         self.stopWebcam()
-
     def stopDetection(self):
         pass
-        # if self.timerWeb is not None and self.timerWeb.isActive():
-        #     self.timerWeb.stop()
-        #     self.captureWeb.release()
-        #     self.__testWidget.imgLabel.clear()
 
     def displayImage(self, img, window=1):
         qformat = QImage.Format_Indexed8
@@ -621,46 +477,6 @@ class MainWindow(FramelessMainWindow):
         if window == 1:
             self.__testWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
             self.__testWidget.imageLabel.setScaledContents(True)
-        # else:
-        #     self.__testWidget.imagePreview.setPixmap(QtGui.QPixmap.fromImage(outImage))
-        #     self.__testWidget.imagePreview.setScaledContents(True)
-
-        
-    # def closeEvent(self, event):
-    #     if self.slideShowOverlay:
-    #         self.slideShowOverlay.close()
-
-    #     if self.calibrationOverlay:
-    #         self.calibrationOverlay.close()
-    #     event.accept()
-
-    # def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
-    #     print(self.size())
-    #     return super().resizeEvent(event)    
-
-    # def openCalibration(self):
-    #     if self.timerWeb is not None and self.timerWeb.isActive():
-    #         if not self.calibrationOverlay:
-    #             ui = QFile("ui/fullScreenCalibrationOverlay.ui")
-    #             ui.open(QFile.ReadOnly)
-    #             self.calibrationOverlay = self.loader.load(ui)
-    #             ui.close()
-    #             self.calibrationOverlay.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-    #             self.calibrationOverlay.showFullScreen()
-    #             self.calibrationOverlay.marker.setPixmap(QtGui.QPixmap("public/marker.png").scaled(80, 80, QtCore.Qt.KeepAspectRatio))
-    #             self.calibrationOverlay.startCalibration.clicked.connect(self.startCalibration)
-    #             self.calibrationOverlay.endCalibration.clicked.connect(self.endCalibration)
-    #         else:
-    #             self.calibrationOverlay.show()
-
-    # def startCalibration(self):
-    #     # TODO: add FIFO queue for calibration points and reset style
-    #     self.calibrationOverlay.bottomLeftWidget.setStyleSheet("QWidget {border-radius: 40px; border: 2px solid red; }")
-    #     self.calibrationOverlay.bottomLeft.setPixmap(QtGui.QPixmap("public/calibration_point.png").scaled(80, 80, QtCore.Qt.KeepAspectRatio))
-
-    # def endCalibration(self):
-    #     self.calibrationOverlay.close()
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -668,13 +484,6 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
-
-    #main("data/train_img.mp4")
-    #create_video("dataset/data_png/", "another_png", resolution=(1280, 720))
-
-
-# využiť angle .. ktorý je v 3D detektori
-# skusiť vytvoriť vektor z 3D detekcie a zistiť jeho smer
 
 # TODO: scan path podobne ako heatmap .. čiarky a body
 # TODO: kalibracia a validacia

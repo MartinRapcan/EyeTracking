@@ -3597,7 +3597,7 @@ font-weight: bold;
      </layout>
     </widget>
    </widget>
-   <widget class="QPushButton" name="uploadSave">
+   <widget class="QPushButton" name="uploadSaved">
     <property name="geometry">
      <rect>
       <x>992</x>
