@@ -296,6 +296,10 @@ class MainWindow(FramelessMainWindow):
         self.config["detector_2d"]['support_pixel_ratio_exponent'] = float(self.__testWidget.supportPixelRatio.text())
         self.detector_2d_config = self.config["detector_2d"]
         self.detector_2d_config["coarse_detection"] = bool(self.detector_2d_config["coarse_detection"])
+        self.previewDetector2d.update_properties(self.detector_2d_config)
+        if self.clickedItem:
+            print("\n\nsetParameters\n")
+            self.imageClicked(self.clickedItem)
         self.__testWidget.saveParameters.setEnabled(True)
 
     def resetParameters(self):
@@ -450,18 +454,15 @@ class MainWindow(FramelessMainWindow):
 
         cv2.ellipse(
             image,
-            tuple(int(v) for v in result_2d["center"]),
-            tuple(int(v / 2) for v in result_2d["axes"]),
-            result_2d["angle"],
+            tuple(int(v) for v in result_2d["ellipse"]["center"]),
+            tuple(int(v / 2) for v in result_2d["ellipse"]["axes"]),
+            result_2d["ellipse"]["angle"],
             0,
             360,
             (0, 255, 0), 
         )
 
         self.displayImage(image, 1)
-
-    def stopDetection(self):
-        pass
 
     def displayImage(self, img, window=1):
         qformat = QImage.Format_Indexed8
