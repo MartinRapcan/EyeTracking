@@ -60,9 +60,13 @@ class MainWindow(FramelessMainWindow):
             self.config = json.load(json_file)
             json_file.seek(0)
             self.original_config = json.load(json_file)
-            self.detector_2d_config = self.config["detector_2d"]
+            self.detector_2d_config = self.config["detector_2d"].copy()
             self.detector_2d_config["coarse_detection"] = bool(self.detector_2d_config["coarse_detection"])
 
+            self.detector_3d_config = self.config["detector_3d"].copy()
+            self.detector_3d_config["long_term_mode"] = DetectorMode.blocking if int(self.detector_3d_config["long_term_mode"]) == 0 else DetectorMode.asynchronous
+            self.detector_3d_config["calculate_rms_residual"] = bool(self.detector_3d_config["calculate_rms_residual"])
+       
         with open('config/default.json') as json_file:
             self.default_config = json.load(json_file)
 
@@ -202,7 +206,8 @@ class MainWindow(FramelessMainWindow):
         self.detector_2d.update_properties(self.detector_2d_config)
         self.previewDetector2d.update_properties(self.detector_2d_config)
         self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
-        self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
+        self.detector_3d = Detector3D(camera=self.camera)
+        self.detector_3d.update_properties(self.detector_3d_config)
 
         for button in titleBar.findChildren(QPushButton):
             button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
@@ -234,11 +239,11 @@ class MainWindow(FramelessMainWindow):
             and self.__testWidget.longTermBufferSize.text() != "" \
             and self.__testWidget.longTermForgetTime.text() != "" \
             and self.__testWidget.longTermForgetObservations.text() != "" \
-            and self.__testWidget.longTermMode.text() == "blocking" or self.__testWidget.longTermMode.text() == "asynchronous" \
+            and (self.__testWidget.longTermMode.text() == "blocking" or self.__testWidget.longTermMode.text() == "asynchronous") \
             and self.__testWidget.modelUpdateIntervalLongTerm.text() != "" \
             and self.__testWidget.modelUpdateIntervalUltLongTerm.text() != "" \
             and self.__testWidget.modelWarmupDuration.text() != "" \
-            and self.__testWidget.calculateRmsResidual.text() == "True" or self.__testWidget.calculateRmsResidual.text() == "False" \
+            and (self.__testWidget.calculateRmsResidual.text() == "True" or self.__testWidget.calculateRmsResidual.text() == "False") \
             and self.__testWidget.intensityRange.text() != "" \
             and self.__testWidget.pupilSizeMax.text() != "" \
             and self.__testWidget.pupilSizeMin.text() != "" \
@@ -248,7 +253,7 @@ class MainWindow(FramelessMainWindow):
             and self.__testWidget.cannyAperture.text() != "" \
             and self.__testWidget.coarseFilterMin.text() != "" \
             and self.__testWidget.coarseFilterMax.text() != "" \
-            and self.__testWidget.coarseDetection.text() == "True" or self.__testWidget.coarseDetection.text() == "False" \
+            and (self.__testWidget.coarseDetection.text() == "True" or self.__testWidget.coarseDetection.text() == "False") \
             and self.__testWidget.contourSizeMin.text() != "" \
             and self.__testWidget.strongPerimeterMin.text() != "" \
             and self.__testWidget.strongPerimeterMax.text() != "" \
@@ -272,7 +277,10 @@ class MainWindow(FramelessMainWindow):
             self.__testWidget.saveParameters.setEnabled(False)
     
     def setParameters(self):
+        # Camera parameters
         self.config['focal_length'] = float(self.__testWidget.focalLength.text())
+
+        # 2D detector parameters
         self.config["detector_2d"]['intensity_range'] = int(self.__testWidget.intensityRange.text())
         self.config["detector_2d"]['pupil_size_max'] = int(self.__testWidget.pupilSizeMax.text())
         self.config["detector_2d"]['pupil_size_min'] = int(self.__testWidget.pupilSizeMin.text())
@@ -294,11 +302,28 @@ class MainWindow(FramelessMainWindow):
         self.config["detector_2d"]['final_perimeter_ratio_range_max'] = float(self.__testWidget.finalPerimeterMax.text())
         self.config["detector_2d"]['ellipse_true_support_min_dist'] = float(self.__testWidget.ellipseSupportMinDist.text())
         self.config["detector_2d"]['support_pixel_ratio_exponent'] = float(self.__testWidget.supportPixelRatio.text())
-        self.detector_2d_config = self.config["detector_2d"]
+
+        # 3D detector parameters
+        self.config["detector_3d"]["threshold_swirski"] = float(self.__testWidget.thresholdSwirski.text())
+        self.config["detector_3d"]["threshold_kalman"] = float(self.__testWidget.thresholdKalman.text())
+        self.config["detector_3d"]["threshold_short_term"] = float(self.__testWidget.thresholdShortTerm.text())
+        self.config["detector_3d"]["threshold_long_term"] = float(self.__testWidget.thresholdLongTerm.text())
+        self.config["detector_3d"]["long_term_buffer_size"] = int(self.__testWidget.longTermBufferSize.text())
+        self.config["detector_3d"]["long_term_forget_time"] = int(self.__testWidget.longTermForgetTime.text())
+        self.config["detector_3d"]["long_term_forget_observations"] = int(self.__testWidget.longTermForgetObservations.text())
+        self.config["detector_3d"]["long_term_mode"] = 1 if self.__testWidget.longTermMode.text() == "asynchronous" else 0
+        self.config["detector_3d"]["model_update_interval_long_term"] = float(self.__testWidget.modelUpdateIntervalLongTerm.text())
+        self.config["detector_3d"]["model_update_interval_ult_long_term"] = float(self.__testWidget.modelUpdateIntervalUltLongTerm.text())
+        self.config["detector_3d"]["model_warmup_duration"] = float(self.__testWidget.modelWarmupDuration.text())
+        self.config["detector_3d"]["calculate_rms_residual"] = int(self.__testWidget.calculateRmsResidual.text() == "True")
+      
+        self.detector_2d_config = self.config["detector_2d"].copy()
         self.detector_2d_config["coarse_detection"] = bool(self.detector_2d_config["coarse_detection"])
+        self.detector_3d_config = self.config["detector_3d"].copy()
+        self.detector_3d_config["long_term_mode"] = DetectorMode.blocking if int(self.detector_3d_config["long_term_mode"]) == 0 else DetectorMode.asynchronous
+        self.detector_3d_config["calculate_rms_residual"] = bool(self.detector_3d_config["calculate_rms_residual"])
         self.previewDetector2d.update_properties(self.detector_2d_config)
         if self.clickedItem:
-            print("\n\nsetParameters\n")
             self.imageClicked(self.clickedItem)
         self.__testWidget.saveParameters.setEnabled(True)
 
@@ -325,14 +350,30 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.finalPerimeterMax.setText(str(self.default_config["detector_2d"]['final_perimeter_ratio_range_max']))
         self.__testWidget.ellipseSupportMinDist.setText(str(self.default_config["detector_2d"]['ellipse_true_support_min_dist']))
         self.__testWidget.supportPixelRatio.setText(str(self.default_config["detector_2d"]['support_pixel_ratio_exponent']))
-        self.config = self.default_config
+        self.__testWidget.thresholdSwirski.setText(str(self.default_config["detector_3d"]['threshold_swirski']))
+        self.__testWidget.thresholdKalman.setText(str(self.default_config["detector_3d"]['threshold_kalman']))
+        self.__testWidget.thresholdShortTerm.setText(str(self.default_config["detector_3d"]['threshold_short_term']))
+        self.__testWidget.thresholdLongTerm.setText(str(self.default_config["detector_3d"]['threshold_long_term']))
+        self.__testWidget.longTermBufferSize.setText(str(self.default_config["detector_3d"]['long_term_buffer_size']))
+        self.__testWidget.longTermForgetTime.setText(str(self.default_config["detector_3d"]['long_term_forget_time']))
+        self.__testWidget.longTermForgetObservations.setText(str(self.default_config["detector_3d"]['long_term_forget_observations']))
+        self.__testWidget.longTermMode.setText("asynchronous" if str(self.default_config["detector_3d"]['long_term_mode']) == "1" else "blocking")
+        self.__testWidget.modelUpdateIntervalLongTerm.setText(str(self.default_config["detector_3d"]['model_update_interval_long_term']))
+        self.__testWidget.modelUpdateIntervalUltLongTerm.setText(str(self.default_config["detector_3d"]['model_update_interval_ult_long_term']))
+        self.__testWidget.modelWarmupDuration.setText(str(self.default_config["detector_3d"]['model_warmup_duration']))
+        self.__testWidget.calculateRmsResidual.setText(str(bool(self.default_config["detector_3d"]['calculate_rms_residual'])))
 
     def saveParameters(self):
+        self.config["detector_3d"]["long_term_mode"] = self.config["detector_3d"]["long_term_mode"]
+        self.config["detector_3d"]["calculate_rms_residual"] = 1 if self.config["detector_3d"]["calculate_rms_residual"] else 0
+        self.config["detector_2d"]["coarse_detection"] = 1 if self.config["detector_2d"]["coarse_detection"] else 0
         with open('config/config.json', 'w') as outfile:
             json.dump(self.config, outfile)
         self.__testWidget.saveParameters.setEnabled(False)
 
     def uploadSavedParameters(self):
+        with open('config/config.json') as json_file:
+            self.original_config = json.load(json_file)
         self.__testWidget.focalLength.setText(str(self.original_config['focal_length']))
         self.__testWidget.coarseDetection.setText(str(bool(self.original_config["detector_2d"]['coarse_detection'])))
         self.__testWidget.coarseFilterMin.setText(str(self.original_config["detector_2d"]['coarse_filter_min']))
@@ -356,11 +397,25 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.ellipseSupportMinDist.setText(str(self.original_config["detector_2d"]['ellipse_true_support_min_dist']))
         self.__testWidget.supportPixelRatio.setText(str(self.original_config["detector_2d"]['support_pixel_ratio_exponent']))
 
+        self.__testWidget.thresholdSwirski.setText(str(self.original_config["detector_3d"]['threshold_swirski']))
+        self.__testWidget.thresholdKalman.setText(str(self.original_config["detector_3d"]['threshold_kalman']))
+        self.__testWidget.thresholdShortTerm.setText(str(self.original_config["detector_3d"]['threshold_short_term']))
+        self.__testWidget.thresholdLongTerm.setText(str(self.original_config["detector_3d"]['threshold_long_term']))
+        self.__testWidget.longTermBufferSize.setText(str(self.original_config["detector_3d"]['long_term_buffer_size']))
+        self.__testWidget.longTermForgetTime.setText(str(self.original_config["detector_3d"]['long_term_forget_time']))
+        self.__testWidget.longTermForgetObservations.setText(str(self.original_config["detector_3d"]['long_term_forget_observations']))
+        self.__testWidget.longTermMode.setText("asynchronous" if str(self.original_config["detector_3d"]['long_term_mode']) == "1" else "blocking")
+        self.__testWidget.modelUpdateIntervalLongTerm.setText(str(self.original_config["detector_3d"]['model_update_interval_long_term']))
+        self.__testWidget.modelUpdateIntervalUltLongTerm.setText(str(self.original_config["detector_3d"]['model_update_interval_ult_long_term']))
+        self.__testWidget.modelWarmupDuration.setText(str(self.original_config["detector_3d"]['model_warmup_duration']))
+        self.__testWidget.calculateRmsResidual.setText(str(bool(self.original_config["detector_3d"]['calculate_rms_residual'])))
+
     def reanalyze(self):
         self.detector_2d.update_properties(self.detector_2d_config)
         self.previewDetector2d.update_properties(self.detector_2d_config)
         self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
-        self.detector_3d = Detector3D(camera=self.camera, long_term_mode=DetectorMode.blocking)
+        self.detector_3d = Detector3D(camera=self.camera)
+        self.detector_3d.update_properties(self.detector_3d_config)
         self.detectionRound = 0
         self.rawDataFromDetection = {}
         self.startDetection()
@@ -451,7 +506,7 @@ class MainWindow(FramelessMainWindow):
         image = cv2.imread(self.imagesPaths[item.text()])
         grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         result_2d = self.previewDetector2d.detect(grayscale_array)
-
+        print(result_2d)
         cv2.ellipse(
             image,
             tuple(int(v) for v in result_2d["ellipse"]["center"]),
