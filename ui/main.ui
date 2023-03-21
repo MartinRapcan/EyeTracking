@@ -3633,6 +3633,91 @@ QPushButton:disabled {
     </property>
    </widget>
   </widget>
+  <widget class="QWidget" name="widget_36" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>300</y>
+     <width>384</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <widget class="QRadioButton" name="rawRadio">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>128</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::RightToLeft</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QRadioButton {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+    </property>
+    <property name="text">
+     <string>Raw image</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="ellipseRadio">
+    <property name="geometry">
+     <rect>
+      <x>128</x>
+      <y>0</y>
+      <width>128</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::RightToLeft</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QRadioButton {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+    </property>
+    <property name="text">
+     <string>Simple ellipse</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="debugRadio">
+    <property name="geometry">
+     <rect>
+      <x>256</x>
+      <y>0</y>
+      <width>128</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::RightToLeft</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QRadioButton {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+    </property>
+    <property name="text">
+     <string>2D debug</string>
+    </property>
+   </widget>
+  </widget>
  </widget>
  <resources/>
  <connections/>

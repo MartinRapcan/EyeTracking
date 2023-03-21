@@ -10,7 +10,7 @@ from pyqt_frameless_window import FramelessMainWindow
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
 from PySide6.QtCore import QFile, QRegularExpression
-from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget
+from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup
 from pupil_detectors import Detector2D
 from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
 
@@ -36,6 +36,8 @@ class MainWindow(FramelessMainWindow):
     rawDataFromDetection = {}
     clickedItem = None
     image = None
+    imageFlag = 'Simple'
+    lastDetectionImage = None
 
     def __init__(self):
         super().__init__()
@@ -55,7 +57,7 @@ class MainWindow(FramelessMainWindow):
         self.setFixedSize(1100, 735)
         titleBar = self.getTitleBar()
         titleBar.setFixedHeight(35)
-
+        
         with open('config/config.json') as json_file:
             self.config = json.load(json_file)
             json_file.seek(0)
@@ -220,6 +222,19 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.loadImage.clicked.connect(self.loadImage)
         self.__testWidget.imagePath.setText("No image selected")
         self.__testWidget.imagePath.setText(self.__testWidget.imagePath.fontMetrics().elidedText(self.__testWidget.imagePath.text(), Qt.ElideRight, self.__testWidget.imagePath.width()))
+        self.radioButtons = QButtonGroup()
+        self.radioButtons.addButton(self.__testWidget.rawRadio)
+        self.radioButtons.addButton(self.__testWidget.ellipseRadio)
+        self.radioButtons.addButton(self.__testWidget.debugRadio)
+        self.__testWidget.ellipseRadio.setChecked(True)
+        self.radioButtons.buttonClicked.connect(self.radioClicked)
+
+    def radioClicked(self, button):
+        self.imageFlag = button.text().split(" ")[0]
+        if self.clickedItem:
+            self.imageClicked(item=self.clickedItem)
+        elif self.lastDetectionImage:
+            self.imageClicked(lastImage=self.lastDetectionImage)
 
     def configChanged(self):
         pupil_size_min = int(self.__testWidget.pupilSizeMin.text()) if self.__testWidget.pupilSizeMin.text() != "" else None
@@ -322,7 +337,7 @@ class MainWindow(FramelessMainWindow):
         self.detector_3d_config = self.config["detector_3d"].copy()
         self.detector_3d_config["long_term_mode"] = DetectorMode.blocking if int(self.detector_3d_config["long_term_mode"]) == 0 else DetectorMode.asynchronous
         self.detector_3d_config["calculate_rms_residual"] = bool(self.detector_3d_config["calculate_rms_residual"])
-        self.previewDetector2d.update_properties(self.detector_2d_config)
+        self.previewDetector2d = Detector2D(self.detector_2d_config)
         if self.clickedItem:
             self.imageClicked(self.clickedItem)
         self.__testWidget.saveParameters.setEnabled(True)
@@ -411,8 +426,8 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.calculateRmsResidual.setText(str(bool(self.original_config["detector_3d"]['calculate_rms_residual'])))
 
     def reanalyze(self):
-        self.detector_2d.update_properties(self.detector_2d_config)
-        self.previewDetector2d.update_properties(self.detector_2d_config)
+        self.detector_2d = Detector2D(self.detector_2d_config)
+        self.previewDetector2d = Detector2D(self.detector_2d_config)
         self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
         self.detector_3d = Detector3D(camera=self.camera)
         self.detector_3d.update_properties(self.detector_3d_config)
@@ -454,6 +469,7 @@ class MainWindow(FramelessMainWindow):
 
     def startDetection(self):
         if self.imagePath:
+            self.clickedItem = None
             if self.detectionRound == 0:
                 self.renderImage()
                 if self.fillImageList == 0:
@@ -474,48 +490,54 @@ class MainWindow(FramelessMainWindow):
                 self.__testWidget.listImages.addItem(listImageName)
                 self.imagesPaths[listImageName] = newPath
 
+            self.lastDetectionImage = newPath
             image = cv2.imread(newPath)
 
             grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-            result_2d = self.detector_2d.detect(grayscale_array)
-            result_2d["timestamp"] = i
+            if self.imageFlag == "2D":
+                result_2d = self.previewDetector2d.detect(grayscale_array, image)
+        
+            elif self.imageFlag == "Simple": 
+                result_2d = self.detector_2d.detect(grayscale_array)  
+                cv2.ellipse(
+                    image,
+                    tuple(int(v) for v in result_2d["ellipse"]["center"]),
+                    tuple(int(v / 2) for v in result_2d["ellipse"]["axes"]),
+                    result_2d["ellipse"]["angle"],
+                    0,
+                    360,
+                    (0, 255, 0), 
+                )
 
+            result_2d["timestamp"] = i
             result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array, apply_refraction_correction=False)
 
             if self.detectionRound == 1:
                 self.rawDataFromDetection[i] = result_3d
-            ellipse_3d = result_3d["ellipse"]
-
-            cv2.ellipse(
-                image,
-                tuple(int(v) for v in ellipse_3d["center"]),
-                tuple(int(v / 2) for v in ellipse_3d["axes"]),
-                ellipse_3d["angle"],
-                0,
-                360,
-                (0, 255, 0),  
-            )
 
             self.displayImage(image, 1)
             cv2.waitKey(10)
 
-    def imageClicked(self, item):
+    def imageClicked(self, item = None, lastImage = None):
         self.clickedItem = item
-
-        image = cv2.imread(self.imagesPaths[item.text()])
+        path = self.lastDetectionImage if lastImage else self.imagesPaths[item.text()]
+        image = cv2.imread(path)
         grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        result_2d = self.previewDetector2d.detect(grayscale_array)
-        print(result_2d)
-        cv2.ellipse(
-            image,
-            tuple(int(v) for v in result_2d["ellipse"]["center"]),
-            tuple(int(v / 2) for v in result_2d["ellipse"]["axes"]),
-            result_2d["ellipse"]["angle"],
-            0,
-            360,
-            (0, 255, 0), 
-        )
+        if self.imageFlag == "2D":
+            result_2d = self.previewDetector2d.detect(grayscale_array, image)
+        
+        elif self.imageFlag == "Simple": 
+            result_2d = self.detector_2d.detect(grayscale_array)                   
+            cv2.ellipse(
+                image,
+                tuple(int(v) for v in result_2d["ellipse"]["center"]),
+                tuple(int(v / 2) for v in result_2d["ellipse"]["axes"]),
+                result_2d["ellipse"]["angle"],
+                0,
+                360,
+                (0, 255, 0), 
+            )
 
         self.displayImage(image, 1)
 
@@ -550,3 +572,5 @@ if __name__ == "__main__":
 # TODO: pre kameru pridať velkosť obrazku do configu
 # TODO: filter requirements
 # TODO: default config .. pre 3D zmeniť ten blocking and boolean
+# TODO: pridať radio button ... aby som mal global seting pre detection aj pre preview
+# či chcem elipsu , nič , alebo cely ten debug pre 2D aj 3D
