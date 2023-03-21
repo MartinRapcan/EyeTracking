@@ -432,6 +432,8 @@ class MainWindow(FramelessMainWindow):
         self.detector_3d = Detector3D(camera=self.camera)
         self.detector_3d.update_properties(self.detector_3d_config)
         self.detectionRound = 0
+        self.lastDetectionImage = None
+        self.clickedItem = None
         self.rawDataFromDetection = {}
         self.startDetection()
 
@@ -444,7 +446,8 @@ class MainWindow(FramelessMainWindow):
             self.fillImageList = 0
             self.detectionRound = 0
             self.imagesPaths = {}
-            self.clickedItem = None 
+            self.lastDetectionImage = None
+            self.clickedItem = None
             self.folderPath = os.path.dirname(fname[0])
             file_list = glob.glob(os.path.join(self.folderPath, "*"))
             self.imageAmount = len(file_list)
@@ -458,6 +461,7 @@ class MainWindow(FramelessMainWindow):
             self.folderPath = None
             self.imageAmount = 0
             self.fillImageList = 0
+            self.lastDetectionImage = None
             self.clickedItem = None
             self.detectionRound = 0
             self.imagesPaths = {}
