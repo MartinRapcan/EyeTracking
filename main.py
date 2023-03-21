@@ -509,14 +509,15 @@ class MainWindow(FramelessMainWindow):
                     360,
                     (0, 255, 0), 
                 )
-
+            else: 
+                result_2d = self.detector_2d.detect(grayscale_array) 
             result_2d["timestamp"] = i
             result_3d = self.detector_3d.update_and_detect(result_2d, grayscale_array, apply_refraction_correction=False)
 
             if self.detectionRound == 1:
                 self.rawDataFromDetection[i] = result_3d
 
-            self.displayImage(image, 1)
+            self.displayImage(image)
             cv2.waitKey(10)
 
     def imageClicked(self, item = None, lastImage = None):
@@ -539,9 +540,9 @@ class MainWindow(FramelessMainWindow):
                 (0, 255, 0), 
             )
 
-        self.displayImage(image, 1)
+        self.displayImage(image)
 
-    def displayImage(self, img, window=1):
+    def displayImage(self, img):
         qformat = QImage.Format_Indexed8
 
         if len(img.shape) == 3:
@@ -552,9 +553,8 @@ class MainWindow(FramelessMainWindow):
 
         outImage = QImage(img, img.shape[1], img.shape[0], img.strides[0], qformat)
         outImage = outImage.rgbSwapped()
-        if window == 1:
-            self.__testWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
-            self.__testWidget.imageLabel.setScaledContents(True)
+        self.__testWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
+        self.__testWidget.imageLabel.setScaledContents(True)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
