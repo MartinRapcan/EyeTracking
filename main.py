@@ -220,7 +220,7 @@ class MainWindow(FramelessMainWindow):
         self.__testWidget.startButton.clicked.connect(self.startDetection)
         self.__testWidget.reanalyze.clicked.connect(self.reanalyze)
         self.__testWidget.loadImage.clicked.connect(self.loadImage)
-        self.__testWidget.imagePath.setText("No image selected")
+        self.__testWidget.imagePath.setText("Choose image")
         self.__testWidget.imagePath.setText(self.__testWidget.imagePath.fontMetrics().elidedText(self.__testWidget.imagePath.text(), Qt.ElideRight, self.__testWidget.imagePath.width()))
         self.radioButtons = QButtonGroup()
         self.radioButtons.addButton(self.__testWidget.rawRadio)
@@ -466,7 +466,7 @@ class MainWindow(FramelessMainWindow):
             self.detectionRound = 0
             self.imagesPaths = {}
             self.rawDataFromDetection = {}
-            self.__testWidget.imagePath.setText("No image selected")
+            self.__testWidget.imagePath.setText("Choose image")
             self.__testWidget.startButton.setEnabled(False)
             self.__testWidget.listImages.clear()
             self.__testWidget.imageLabel.clear()

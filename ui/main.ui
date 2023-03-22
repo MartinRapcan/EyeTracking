@@ -135,9 +135,9 @@ background-color: #ccba18;
   <widget class="QLabel" name="imagePath">
    <property name="geometry">
     <rect>
-     <x>790</x>
+     <x>890</x>
      <y>110</y>
-     <width>200</width>
+     <width>100</width>
      <height>25</height>
     </rect>
    </property>
