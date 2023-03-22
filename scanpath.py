@@ -15,6 +15,7 @@ def convert_uv_to_px(uv_data, width, height):
 overlay_circles = image.copy()
 overlay_lines = image.copy()
 alpha_circles = 0.6
+outline_width = 10
 alpha_lines = 0.2
 TEXT_FACE = cv2.FONT_HERSHEY_SIMPLEX
 TEXT_SCALE = 0.8
@@ -23,7 +24,7 @@ TEXT_COLOR = (0, 0, 0)
 
 points_group = {}
 colors = {}
-threshold = 150
+threshold = 50
 order = 0
 
 with open(input_path) as f:
@@ -68,27 +69,45 @@ for key in points_group:
     points_group[key]['middle']['y'] = y
     points_group[key]['diameter'] = 20
     
-    
-# TODO: lepši sposob ako spraviť velkosť kruhu na zaklade počtu bodov v skupine
-# TODO: preto pokial mam jeden tak ono to nejako dojebe
-# q1_index = int(len(points_group) * 0.25)
-# q2_index = int(len(points_group) * 0.5)
-# q3_index = int(len(points_group) * 0.75)
 
-# q1 = points_group_keys[:q1_index]
-# q2 = points_group_keys[q1_index:q2_index]
-# q3 = points_group_keys[q2_index:q3_index]
-# q4 = points_group_keys[q3_index:]
+different_lengths = {}
+for key in points_group:
+    if not different_lengths.get(len(points_group[key]['points'])):
+        different_lengths[len(points_group[key]['points'])] = [key]
+    else:
+        different_lengths[len(points_group[key]['points'])].append(key)
 
-# def setDiameter(array, diameter):
-#     for key in array:
-#         points_group[key]['diameter'] = diameter
+diameters = {1: 20, 2: 40, 3: 60, 4: 80}
+if len(different_lengths) == 1:
+    for key in points_group:
+        points_group[key]['diameter'] = diameters[1]
+elif len(different_lengths) == 2:
+    for key in different_lengths:
+        for index in different_lengths[key]:
+            points_group[index]['diameter'] = diameters[key]
+elif len(different_lengths) == 3:
+    for key in different_lengths:
+        for index in different_lengths[key]:
+            points_group[index]['diameter'] = diameters[key]
+elif len(different_lengths) == 4:
+    for key in different_lengths:
+        for index in different_lengths[key]:
+            points_group[index]['diameter'] = diameters[key]
+else:
+    first_key = different_lengths[list(different_lengths)[0]]
+    last_key = different_lengths[list(different_lengths)[-1]]
+    remaining_keys = list(different_lengths)[1:-1]
+    first_middle_keys = remaining_keys[:len(remaining_keys) // 2]
+    last_middle_keys = remaining_keys[len(remaining_keys) // 2:]
+    for key in first_key:
+        points_group[key]['diameter'] = diameters[1]
+    for key in last_key:
+        points_group[key]['diameter'] = diameters[4]
+    for key in first_middle_keys:
+        points_group[key]['diameter'] = diameters[2]
+    for key in last_middle_keys:
+        points_group[key]['diameter'] = diameters[3]
         
-
-# setDiameter(q1, 30)
-# setDiameter(q2, 50)
-# setDiameter(q3, 70)
-# setDiameter(q4, 100)
 
 points_group = dict(sorted(points_group.items(), key=lambda item: item[1]['index'], reverse=False))
 points_group_keys = list(points_group)
@@ -108,26 +127,25 @@ for key in range(0, len(points_group) - 1):
 
     distance = sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-    # TODO: pridať k riadiusu širku outline kruhu .. lebo to ide cez neho a vidieť to
     if distance >= (radius1 + radius2):   
         angle = atan2(y2 - y1, x2 - x1)
-        point1_x = x1 + radius1 * cos(angle)
-        point1_y = y1 + radius1 * sin(angle)
-        point2_x = x2 - radius2 * cos(angle)
-        point2_y = y2 - radius2 * sin(angle)
+        point1_x = x1 + (radius1 + outline_width // 2) * cos(angle)
+        point1_y = y1 + (radius1 + outline_width // 2) * sin(angle)
+        point2_x = x2 - (radius2 + outline_width // 2) * cos(angle)
+        point2_y = y2 - (radius2 + outline_width // 2) * sin(angle)
         cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(points_group)[key]], 4)
     
     text_size, _ = cv2.getTextSize(str(points_group[points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
     text_origin = (int(x1 - text_size[0] / 2), int(y1 + text_size[1] / 2))
     
     #cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], -1)
-    cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], 10)
+    cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], outline_width)
     #cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
     if key == len(points_group) - 2:
         text_size, _ = cv2.getTextSize(str(points_group[points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
         text_origin = (int(x2 - text_size[0] / 2), int(y2 + text_size[1] / 2))
         #cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], -1)
-        cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], 10)
+        cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], outline_width)
         #cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
 
 
