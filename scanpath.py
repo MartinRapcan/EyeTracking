@@ -82,17 +82,36 @@ if len(different_lengths) == 1:
     for key in points_group:
         points_group[key]['diameter'] = diameters[1]
 elif len(different_lengths) == 2:
-    for key in different_lengths:
-        for index in different_lengths[key]:
-            points_group[index]['diameter'] = diameters[key]
+    first_key = different_lengths[list(different_lengths)[0]]
+    last_key = different_lengths[list(different_lengths)[-1]]
+    for key in first_key:
+        points_group[key]['diameter'] = diameters[1]
+    for key in last_key:
+        points_group[key]['diameter'] = diameters[2]
 elif len(different_lengths) == 3:
-    for key in different_lengths:
-        for index in different_lengths[key]:
-            points_group[index]['diameter'] = diameters[key]
+    first_key = different_lengths[list(different_lengths)[0]]
+    last_key = different_lengths[list(different_lengths)[-1]]
+    remaining_keys = list(different_lengths)[1:-1]
+    for key in first_key:
+        points_group[key]['diameter'] = diameters[1]
+    for key in last_key:
+        points_group[key]['diameter'] = diameters[3]
+    for key in remaining_keys:
+        points_group[key]['diameter'] = diameters[2]
 elif len(different_lengths) == 4:
-    for key in different_lengths:
-        for index in different_lengths[key]:
-            points_group[index]['diameter'] = diameters[key]
+    first_key = different_lengths[list(different_lengths)[0]]
+    last_key = different_lengths[list(different_lengths)[-1]]
+    remaining_keys = list(different_lengths)[1:-1]
+    first_middle_keys = remaining_keys[:len(remaining_keys) // 2]
+    last_middle_keys = remaining_keys[len(remaining_keys) // 2:]
+    for key in first_key:
+        points_group[key]['diameter'] = diameters[1]
+    for key in last_key:
+        points_group[key]['diameter'] = diameters[4]
+    for key in first_middle_keys:
+        points_group[key]['diameter'] = diameters[2]
+    for key in last_middle_keys:
+        points_group[key]['diameter'] = diameters[3]
 else:
     first_key = different_lengths[list(different_lengths)[0]]
     last_key = different_lengths[list(different_lengths)[-1]]

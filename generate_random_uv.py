@@ -11,4 +11,4 @@ def randomUVCoords(amount=200):
             f.write(f'{uv[0]},{uv[1]}\n')
 
 if __name__ == '__main__':
-    randomUVCoords()
+    randomUVCoords(500)
