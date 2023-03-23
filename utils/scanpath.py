@@ -88,7 +88,6 @@ if len(different_lengths) > 1:
     min_length = min(different_lengths)
     for value in different_lengths:
         normalized_value = ((value - min_length) / (max_length - min_length)) * (new_max - new_min) + new_min
-        print(normalized_value)
         for key in different_lengths[value]:
             points_group[key]['diameter'] = int(20 * normalized_value)
 else:
