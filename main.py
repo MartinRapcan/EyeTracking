@@ -5,12 +5,12 @@ import cv2
 import re
 import json
 
-from PySide6.QtCore import Qt
-from pyqt_frameless_window import FramelessMainWindow
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
-from PySide6.QtCore import QFile, QRegularExpression
+from PySide6.QtCore import QFile, QRegularExpression, Qt
 from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup
+from pyqt_frameless_window import FramelessMainWindow
+
 from pupil_detectors import Detector2D
 from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
 
