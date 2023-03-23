@@ -77,55 +77,24 @@ for key in points_group:
     else:
         different_lengths[len(points_group[key]['points'])].append(key)
 
-diameters = {1: 20, 2: 40, 3: 60, 4: 80}
-if len(different_lengths) == 1:
-    for key in points_group:
-        points_group[key]['diameter'] = diameters[1]
-elif len(different_lengths) == 2:
-    first_key = different_lengths[list(different_lengths)[0]]
-    last_key = different_lengths[list(different_lengths)[-1]]
-    for key in first_key:
-        points_group[key]['diameter'] = diameters[1]
-    for key in last_key:
-        points_group[key]['diameter'] = diameters[2]
-elif len(different_lengths) == 3:
-    first_key = different_lengths[list(different_lengths)[0]]
-    last_key = different_lengths[list(different_lengths)[-1]]
-    remaining_keys = list(different_lengths)[1:-1]
-    for key in first_key:
-        points_group[key]['diameter'] = diameters[1]
-    for key in last_key:
-        points_group[key]['diameter'] = diameters[3]
-    for key in remaining_keys:
-        points_group[key]['diameter'] = diameters[2]
-elif len(different_lengths) == 4:
-    first_key = different_lengths[list(different_lengths)[0]]
-    last_key = different_lengths[list(different_lengths)[-1]]
-    remaining_keys = list(different_lengths)[1:-1]
-    first_middle_keys = remaining_keys[:len(remaining_keys) // 2]
-    last_middle_keys = remaining_keys[len(remaining_keys) // 2:]
-    for key in first_key:
-        points_group[key]['diameter'] = diameters[1]
-    for key in last_key:
-        points_group[key]['diameter'] = diameters[4]
-    for key in first_middle_keys:
-        points_group[key]['diameter'] = diameters[2]
-    for key in last_middle_keys:
-        points_group[key]['diameter'] = diameters[3]
+# base pixel for diameter ---- diameter = 20
+# normalize between new_min and new_max ---- normalized_value = ((original_value - min_value) / (max_value - min_value)) * (new_max - new_min) + new_min
+new_min = 1
+new_max = 4
+# normalize between 1 and 2 ---- normalized_value = (value - min_length) / (max_length - min_length) + 1
+
+if len(different_lengths) > 1:
+    max_length = max(different_lengths)
+    min_length = min(different_lengths)
+    for value in different_lengths:
+        normalized_value = ((value - min_length) / (max_length - min_length)) * (new_max - new_min) + new_min
+        print(normalized_value)
+        for key in different_lengths[value]:
+            points_group[key]['diameter'] = int(20 * normalized_value)
 else:
-    first_key = different_lengths[list(different_lengths)[0]]
-    last_key = different_lengths[list(different_lengths)[-1]]
-    remaining_keys = list(different_lengths)[1:-1]
-    first_middle_keys = remaining_keys[:len(remaining_keys) // 2]
-    last_middle_keys = remaining_keys[len(remaining_keys) // 2:]
-    for key in first_key:
-        points_group[key]['diameter'] = diameters[1]
-    for key in last_key:
-        points_group[key]['diameter'] = diameters[4]
-    for key in first_middle_keys:
-        points_group[key]['diameter'] = diameters[2]
-    for key in last_middle_keys:
-        points_group[key]['diameter'] = diameters[3]
+    for key in different_lengths:
+        for value in different_lengths[key]:
+            points_group[value]['diameter'] = 20
         
 
 points_group = dict(sorted(points_group.items(), key=lambda item: item[1]['index'], reverse=False))
