@@ -530,15 +530,13 @@ class MainWindow(FramelessMainWindow):
         self.clickedItem = item
         path = self.lastDetectionImage if lastImage else self.imagesPaths[item.text()]
         image = cv2.imread(path)
-        print(self.previewDetector2d.get_properties())
+
         grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         if self.imageFlag == "2D":
             result_2d = self.previewDetector2d.detect(grayscale_array, image)
-            print(result_2d)
         
         elif self.imageFlag == "Simple": 
-            result_2d = self.detector_2d.detect(grayscale_array)         
-            print(result_2d)          
+            result_2d = self.previewDetector2d.detect(grayscale_array)                 
             cv2.ellipse(
                 image,
                 tuple(int(v) for v in result_2d["ellipse"]["center"]),
