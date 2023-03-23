@@ -339,7 +339,9 @@ class MainWindow(FramelessMainWindow):
         self.detector_3d_config["calculate_rms_residual"] = bool(self.detector_3d_config["calculate_rms_residual"])
         self.previewDetector2d = Detector2D(self.detector_2d_config)
         if self.clickedItem:
-            self.imageClicked(self.clickedItem)
+            self.imageClicked(item=self.clickedItem)
+        elif self.lastDetectionImage:
+            self.imageClicked(lastImage=self.lastDetectionImage)
         self.__testWidget.saveParameters.setEnabled(True)
 
     def resetParameters(self):
@@ -528,12 +530,15 @@ class MainWindow(FramelessMainWindow):
         self.clickedItem = item
         path = self.lastDetectionImage if lastImage else self.imagesPaths[item.text()]
         image = cv2.imread(path)
+        print(self.previewDetector2d.get_properties())
         grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         if self.imageFlag == "2D":
             result_2d = self.previewDetector2d.detect(grayscale_array, image)
+            print(result_2d)
         
         elif self.imageFlag == "Simple": 
-            result_2d = self.detector_2d.detect(grayscale_array)                   
+            result_2d = self.detector_2d.detect(grayscale_array)         
+            print(result_2d)          
             cv2.ellipse(
                 image,
                 tuple(int(v) for v in result_2d["ellipse"]["center"]),
@@ -578,3 +583,6 @@ if __name__ == "__main__":
 # TODO: default config .. pre 3D zmeniť ten blocking and boolean
 # TODO: pridať radio button ... aby som mal global seting pre detection aj pre preview
 # či chcem elipsu , nič , alebo cely ten debug pre 2D aj 3D
+
+# TODO: deje sa tam nejaka pičovina .... pri refreshi sa neberie obrazok s novymi parametrami ale s predoslymi
+# TODO: zmeniť requirements na originalne z old_requirements.txt
