@@ -570,17 +570,8 @@ if __name__ == "__main__":
     window.show()
     sys.exit(app.exec_())
 
-# TODO: scan path podobne ako heatmap .. čiarky a body
 # TODO: kalibracia a validacia
-# TODO: spraviť nejake opatrenie ked je otvoreny overlay aby nenastala nejaka šarapata keby sa vymazalo nieco z obrazku
 # TODO: transforms lib knižnica
 # TODO: prevod medzi lokal a global coord systemom
 # TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
 # TODO: pre kameru pridať velkosť obrazku do configu
-# TODO: filter requirements
-# TODO: default config .. pre 3D zmeniť ten blocking and boolean
-# TODO: pridať radio button ... aby som mal global seting pre detection aj pre preview
-# či chcem elipsu , nič , alebo cely ten debug pre 2D aj 3D
-
-# TODO: deje sa tam nejaka pičovina .... pri refreshi sa neberie obrazok s novymi parametrami ale s predoslymi
-# TODO: zmeniť requirements na originalne z old_requirements.txt
