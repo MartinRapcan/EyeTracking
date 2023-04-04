@@ -942,5 +942,5 @@ if __name__ == "__main__":
 # TODO: prevod medzi lokal a global coord systemom
 # TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
 # TODO: pre kameru pridať velkosť obrazku do configu
-# TODO: vytvoriť classu pre popupwindow.. kde bude save na ten image
 # TODO: dalšiu iteraciu navrhu .. že čo sa zmenilo
+# TODO: zavrieť všetky okná pri ukončení hlavnej aplikácie
