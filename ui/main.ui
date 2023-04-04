@@ -3718,6 +3718,139 @@ font-weight: bold;
     </property>
    </widget>
   </widget>
+  <widget class="QLabel" name="label_41">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>20</y>
+     <width>221</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 24px;
+font-weight: bold;
+}</string>
+   </property>
+   <property name="text">
+    <string>Visualization</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="heatmap">
+   <property name="geometry">
+    <rect>
+     <x>690</x>
+     <y>60</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
+}</string>
+   </property>
+   <property name="text">
+    <string>Heatmap</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="scanpath">
+   <property name="geometry">
+    <rect>
+     <x>690</x>
+     <y>100</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
+}</string>
+   </property>
+   <property name="text">
+    <string>Scanpath</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="rawImage">
+   <property name="geometry">
+    <rect>
+     <x>690</x>
+     <y>140</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
+}</string>
+   </property>
+   <property name="text">
+    <string>Raw image</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
