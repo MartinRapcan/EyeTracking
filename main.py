@@ -12,8 +12,11 @@ from PySide6.QtCore import QFile, QRegularExpression, Qt
 from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup
 from pyqt_frameless_window import FramelessMainWindow
 from math import sqrt, atan2, cos, sin
+from matplotlib import pyplot, use
 from pupil_detectors import Detector2D
 from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
+use('Agg')
+
 
 class MainWindow(FramelessMainWindow):
     detector_2d = Detector2D()
@@ -707,14 +710,11 @@ class VisualizationWindow(FramelessMainWindow):
         h, w, c = image.shape
         self.qimg = QImage(image.data, w, h, c * w, QImage.Format_RGB888)
 
-        if image.shape[0] > self.__mainWidget.image.width() or image.shape[1] > self.__mainWidget.image.height():
+        if image.shape[1] > self.__mainWidget.image.width() or image.shape[0] > self.__mainWidget.image.height():
             self.__mainWidget.image.setPixmap(QPixmap.fromImage(self.qimg).scaled(self.__mainWidget.image.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
             self.__mainWidget.image.setPixmap(QPixmap.fromImage(self.qimg))
             self.__mainWidget.image.setAlignment(Qt.AlignCenter)
-
-    def heatmapVisualization(self):
-        pass
 
     def scanpathVisualization(self):
         image = cv2.imread(self.imagePath)
@@ -842,6 +842,93 @@ class VisualizationWindow(FramelessMainWindow):
         result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circles, 0)
         result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
         return result
+    
+    def heatmapVisualization(self):
+        img = cv2.imread(self.imagePath)
+
+        dpi = 100.0
+        alpha = 0.5
+        ngaussian = 200
+        sd = 8
+        width = img.shape[1]
+        height = img.shape[0]
+        
+        for i in range(0, len(self.uv_coords)):
+            self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], width, height)
+
+        figsize = (width / dpi, height / dpi)
+        fig = pyplot.figure(figsize=figsize, dpi=dpi, frameon=False)
+
+        ax = pyplot.Axes(fig, [0, 0, 1, 1])
+        ax.set_axis_off()
+        fig.add_axes(ax)
+        ax.axis([0, width, 0, height])
+        ax.imshow(img)
+
+        # HEATMAP
+        # Gaussian
+        gwh = ngaussian
+        gsdwh = sd
+        
+        xo = gwh / 2
+        yo = gwh / 2
+
+        gaus = np.zeros([gwh, gwh], dtype=float)
+
+        for i in range(gwh):
+            for j in range(gwh):
+                gaus[j, i] = np.exp(
+                    -1.0 * (((float(i) - xo) ** 2 / (2 * gsdwh * gsdwh)) + ((float(j) - yo) ** 2 / (2 * gsdwh * gsdwh))))
+
+        # matrix of zeroes
+        strt = gwh // 2
+        heatmapsize = height + 2 * strt, width + 2 * strt
+        heatmap = np.zeros(heatmapsize, dtype=float)
+        # create heatmap
+        for i in range(0, len(self.uv_coords)):
+            # get x and y coordinates
+            x = strt + self.uv_coords[i][0] - int(gwh / 2)
+            y = strt + self.uv_coords[i][1] - int(gwh / 2)
+            # correct Gaussian size if either coordinate falls outside of
+            # display boundaries
+            if (not 0 < x < width) or (not 0 < y < height):
+                hadj = [0, gwh];
+                vadj = [0, gwh]
+                if 0 > x:
+                    hadj[0] = abs(x)
+                    x = 0
+                elif width < x:
+                    hadj[1] = gwh - int(x - width)
+                if 0 > y:
+                    vadj[0] = abs(y)
+                    y = 0
+                elif height < y:
+                    vadj[1] = gwh - int(y - height)
+                # add adjusted Gaussian to the current heatmap
+                try:
+                    heatmap[y:y + vadj[1], x:x + hadj[1]] += gaus[vadj[0]:vadj[1], hadj[0]:hadj[1]] * self.uv_coords[i][2]
+                except:
+                    # fixation was probably outside of display
+                    pass
+            else:
+                # add Gaussian to the current heatmap
+                heatmap[y:y + gwh, x:x + gwh] += gaus
+        # resize heatmap
+        heatmap = heatmap[strt:height + strt, strt:width + strt]
+        # remove zeros
+        lowbound = np.mean(heatmap[heatmap > 0])
+        heatmap[heatmap < lowbound] = np.NaN
+        # draw heatmap on top of image
+        ax.imshow(heatmap, cmap='jet', alpha=alpha)
+
+        # FINISH PLOT
+        # invert the y axis, as (0,0) is top left on a display
+        ax.invert_yaxis()
+        fig.canvas.draw()
+        data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+        return data
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
