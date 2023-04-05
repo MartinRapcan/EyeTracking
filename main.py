@@ -592,6 +592,11 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
         self.__mainWidget.imageLabel.setScaledContents(True)
 
+    def closeEvent(self, event):
+        for i in self.openedWindows:
+            i.close()
+        event.accept()
+
 class VisualizationWindow(FramelessMainWindow):
     loader = QUiLoader()
     uv_coords = []	
