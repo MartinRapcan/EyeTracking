@@ -1,9 +1,11 @@
 import csv
 import cv2
 from math import sqrt, atan2, cos, sin
+from matplotlib import pyplot as plt
+import numpy as np
 
 input_path = "./coordinates/uv_coords.csv"
-image_path = "./images/scan_test.jpg"
+image_path = "./images/heatmap.jpg"
 
 image = cv2.imread(image_path)
 image_width = image.shape[1]
@@ -21,6 +23,8 @@ TEXT_FACE = cv2.FONT_HERSHEY_SIMPLEX
 TEXT_SCALE = 0.8
 TEXT_THICKNESS = 2
 TEXT_COLOR = (0, 0, 0)
+color1 = (255, 0, 0)
+color2 = (0, 0, 255)
 
 points_group = {}
 colors = {}
@@ -99,10 +103,21 @@ else:
 points_group = dict(sorted(points_group.items(), key=lambda item: item[1]['index'], reverse=False))
 points_group_keys = list(points_group)
 
-color_step = 1 / len(points_group)
+def lerp(a, b, t):
+    return (1 - t) * a + t * b
+
+t = 1 / (len(points_group) - 1) 
 for key in points_group:
-    shade = key * color_step
-    colors[key] = (int(255 * shade), int(255 * shade), int(255 * shade))
+    r = min(255, max(0, int(lerp(color1[0], color2[0], t))))
+    g = min(255, max(0, int(lerp(color1[1], color2[1], t))))
+    b = min(255, max(0, int(lerp(color1[2], color2[2], t))))
+    colors[key] = (r, g, b)
+    t += 1 / (len(points_group) - 1)
+
+# color_step = 1 / len(points_group)
+# for key in points_group:
+#     shade = key * color_step
+#     colors[key] = (int(255 * shade), int(255 * shade), int(255 * shade))
 
 for key in range(0, len(points_group) - 1):
     x1 = points_group[points_group_keys[key]]['middle']['x']
@@ -140,4 +155,4 @@ result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circle
 result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
 
 # TODO: generate multiple images with different types of scanpath
-cv2.imwrite("./images/scan_test_after.jpg", result)
+cv2.imwrite("./images/heatmap_color.jpg", result)

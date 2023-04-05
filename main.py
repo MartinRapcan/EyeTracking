@@ -9,7 +9,7 @@ import numpy as np
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
 from PySide6.QtCore import QFile, QRegularExpression, Qt
-from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup
+from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup, QColorDialog
 from pyqt_frameless_window import FramelessMainWindow
 from math import sqrt, atan2, cos, sin
 from matplotlib import pyplot, use
@@ -604,6 +604,11 @@ class VisualizationWindow(FramelessMainWindow):
     planeNormal = np.array([0, 1, 0])
     planeCenter = np.array([0, -500, 0])
     qimg = None
+    color1 = (0, 0, 0)
+    color2 = (255, 255, 255) 
+    repeat = False
+    points_group = {}
+    points_group_keys = []
 
     def __init__(self, imagePath = None, rawData = None, heatmap = None, scanpath = None):
         super().__init__()
@@ -633,10 +638,34 @@ class VisualizationWindow(FramelessMainWindow):
         self.heatmap = heatmap
         self.scanpath = scanpath
         self.__mainWidget.saveImage.clicked.connect(self.saveImage)
+        self.__mainWidget.color1.clicked.connect(self.setFirstColor)
+        self.__mainWidget.color2.clicked.connect(self.setSecondColor)
+        self.__mainWidget.color1.setStyleSheet(f'QPushButton {{background-color: #000000; border: 5px solid #FFE81F;}}')
+        self.__mainWidget.color2.setStyleSheet(f'QPushButton {{background-color: #FFFFFF; border: 5px solid #FFE81F;}}')
+        if not self.scanpath:
+            self.__mainWidget.color1.hide()
+            self.__mainWidget.color2.hide()
+
         if self.rawData:
             self.rawToPoint()
 
         if self.imagePath:
+            self.displayImage()
+
+    def setFirstColor(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            r, g, b, _ = color.getRgb()
+            self.__mainWidget.color1.setStyleSheet(f'QPushButton {{background-color: {color.name()}; border: 5px solid #FFE81F;}}')
+            self.color1 = (b, g, r)
+            self.displayImage()
+
+    def setSecondColor(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            r, g, b, _ = color.getRgb()
+            self.__mainWidget.color2.setStyleSheet(f'QPushButton {{background-color: {color.name()}; border: 5px solid #FFE81F;}}')
+            self.color2 = (b, g, r)
             self.displayImage()
 
     def saveImage(self):
@@ -675,6 +704,9 @@ class VisualizationWindow(FramelessMainWindow):
             
     def sqrMagnitude(self, v):
         return self.matmul(v, v)
+
+    def lerp(self, a, b, t):
+        return (1 - t) * a + t * b
 
     def convert_uv_to_px(self, uv_data, width, height):
         return (int(uv_data[0] * width), int(uv_data[1] * height))
@@ -736,89 +768,92 @@ class VisualizationWindow(FramelessMainWindow):
         TEXT_THICKNESS = 2
         TEXT_COLOR = (0, 0, 0)
 
-        points_group = {}
         colors = {}
         threshold = 50
         order = 0
 
-        for i in range(0, len(self.uv_coords)):
-            self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], image_width, image_height)
+        if not self.repeat:
+            self.repeat = True
+            for i in range(0, len(self.uv_coords)):
+                self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], image_width, image_height)
 
-        main_point = None
-        for i in range(0, len(self.uv_coords)):
-            if not main_point:
-                main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
+            main_point = None
+            for i in range(0, len(self.uv_coords)):
+                if not main_point:
+                    main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
 
-            if abs(self.uv_coords[i][0] - main_point[0]) <= threshold and abs(self.uv_coords[i][1] - main_point[1]) <= threshold:
-                if not points_group.get(order):
-                    points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
-                else:
-                    points_group[order]['points'].append(self.uv_coords[i])
-            
-            else:
-                order += 1
-                main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
-                points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
-
-        points_group = dict(sorted(points_group.items(), key=lambda item: len(item[1]['points']), reverse=False))
-        points_group_keys = list(points_group)    
-
-        for key in points_group:
-            points = points_group[key]['points']
-            x = 0
-            y = 0
-            diameter = 0
-
-            for point in points:
-                x += point[0]
-                y += point[1]
-
-            x = int(x / len(points))
-            y = int(y / len(points))
-            points_group[key]['middle']['x'] = x
-            points_group[key]['middle']['y'] = y            
-
-        different_lengths = {}
-        for key in points_group:
-            if not different_lengths.get(len(points_group[key]['points'])):
-                different_lengths[len(points_group[key]['points'])] = [key]
-            else:
-                different_lengths[len(points_group[key]['points'])].append(key)
-
-        # base pixel for diameter ---- diameter = 20
-        # normalize between new_min and new_max ---- normalized_value = ((original_value - min_value) / (max_value - min_value)) * (new_max - new_min) + new_min
-        new_min = 1
-        new_max = 4
-        # normalize between 1 and 2 ---- normalized_value = (value - min_length) / (max_length - min_length) + 1
-
-        if len(different_lengths) > 1:
-            max_length = max(different_lengths)
-            min_length = min(different_lengths)
-            for value in different_lengths:
-                normalized_value = ((value - min_length) / (max_length - min_length)) * (new_max - new_min) + new_min
-                for key in different_lengths[value]:
-                    points_group[key]['diameter'] = int(20 * normalized_value)
-        else:
-            for key in different_lengths:
-                for value in different_lengths[key]:
-                    points_group[value]['diameter'] = 20
+                if abs(self.uv_coords[i][0] - main_point[0]) <= threshold and abs(self.uv_coords[i][1] - main_point[1]) <= threshold:
+                    if not self.points_group.get(order):
+                        self.points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
+                    else:
+                        self.points_group[order]['points'].append(self.uv_coords[i])
                 
+                else:
+                    order += 1
+                    main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
+                    self.points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
 
-        points_group = dict(sorted(points_group.items(), key=lambda item: item[1]['index'], reverse=False))
-        points_group_keys = list(points_group)
+            self.points_group = dict(sorted(self.points_group.items(), key=lambda item: len(item[1]['points']), reverse=False))
+            self.points_group_keys = list(self.points_group)    
 
-        color_step = 1 / len(points_group)
-        for key in points_group:
-            shade = key * color_step
-            colors[key] = (int(255 * shade), int(255 * shade), int(255 * shade))
+            for key in self.points_group:
+                points = self.points_group[key]['points']
+                x = 0
+                y = 0
 
-        for key in range(0, len(points_group) - 1):
-            x1 = points_group[points_group_keys[key]]['middle']['x']
-            y1 = points_group[points_group_keys[key]]['middle']['y']
-            x2 = points_group[points_group_keys[key + 1]]['middle']['x']
-            y2 = points_group[points_group_keys[key + 1]]['middle']['y']
-            radius1 = points_group[points_group_keys[key]]['diameter']
-            radius2 = points_group[points_group_keys[key + 1]]['diameter']
+                for point in points:
+                    x += point[0]
+                    y += point[1]
+
+                x = int(x / len(points))
+                y = int(y / len(points))
+                self.points_group[key]['middle']['x'] = x
+                self.points_group[key]['middle']['y'] = y            
+
+            different_lengths = {}
+            for key in self.points_group:
+                if not different_lengths.get(len(self.points_group[key]['points'])):
+                    different_lengths[len(self.points_group[key]['points'])] = [key]
+                else:
+                    different_lengths[len(self.points_group[key]['points'])].append(key)
+
+            # base pixel for diameter ---- diameter = 20
+            # normalize between new_min and new_max ---- normalized_value = ((original_value - min_value) / (max_value - min_value)) * (new_max - new_min) + new_min
+            new_min = 1
+            new_max = 4
+            # normalize between 1 and 2 ---- normalized_value = (value - min_length) / (max_length - min_length) + 1
+
+            if len(different_lengths) > 1:
+                max_length = max(different_lengths)
+                min_length = min(different_lengths)
+                for value in different_lengths:
+                    normalized_value = ((value - min_length) / (max_length - min_length)) * (new_max - new_min) + new_min
+                    for key in different_lengths[value]:
+                        self.points_group[key]['diameter'] = int(20 * normalized_value)
+            else:
+                for key in different_lengths:
+                    for value in different_lengths[key]:
+                        self.points_group[value]['diameter'] = 20
+                    
+
+            self.points_group = dict(sorted(self.points_group.items(), key=lambda item: item[1]['index'], reverse=False))
+            self.points_group_keys = list(self.points_group)
+
+        t = 1 / (len(self.points_group) - 1) 
+        for key in self.points_group:
+            r = min(255, max(0, int(self.lerp(self.color1[0], self.color2[0], t))))
+            g = min(255, max(0, int(self.lerp(self.color1[1], self.color2[1], t))))
+            b = min(255, max(0, int(self.lerp(self.color1[2], self.color2[2], t))))
+            colors[key] = (r, g, b)
+            t += 1 / (len(self.points_group) - 1)
+
+        for key in range(0, len(self.points_group) - 1):
+            x1 = self.points_group[self.points_group_keys[key]]['middle']['x']
+            y1 = self.points_group[self.points_group_keys[key]]['middle']['y']
+            x2 = self.points_group[self.points_group_keys[key + 1]]['middle']['x']
+            y2 = self.points_group[self.points_group_keys[key + 1]]['middle']['y']
+            radius1 = self.points_group[self.points_group_keys[key]]['diameter']
+            radius2 = self.points_group[self.points_group_keys[key + 1]]['diameter']
 
             distance = sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
@@ -828,19 +863,19 @@ class VisualizationWindow(FramelessMainWindow):
                 point1_y = y1 + (radius1 + outline_width // 2) * sin(angle)
                 point2_x = x2 - (radius2 + outline_width // 2) * cos(angle)
                 point2_y = y2 - (radius2 + outline_width // 2) * sin(angle)
-                cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(points_group)[key]], 4)
+                cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(self.points_group)[key]], 4)
             
-            text_size, _ = cv2.getTextSize(str(points_group[points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
+            text_size, _ = cv2.getTextSize(str(self.points_group[self.points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
             text_origin = (int(x1 - text_size[0] / 2), int(y1 + text_size[1] / 2))
             
             #cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], -1)
-            cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], outline_width)
+            cv2.circle(overlay_circles, (x1, y1), radius1, colors[self.points_group_keys[key]], outline_width)
             #cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
-            if key == len(points_group) - 2:
-                text_size, _ = cv2.getTextSize(str(points_group[points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
+            if key == len(self.points_group) - 2:
+                text_size, _ = cv2.getTextSize(str(self.points_group[self.points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
                 text_origin = (int(x2 - text_size[0] / 2), int(y2 + text_size[1] / 2))
                 #cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], -1)
-                cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], outline_width)
+                cv2.circle(overlay_circles, (x2, y2), radius2, colors[self.points_group_keys[key + 1]], outline_width)
                 #cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
 
 
