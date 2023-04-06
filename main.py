@@ -8,7 +8,7 @@ import numpy as np
 
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
-from PySide6.QtCore import QFile, QRegularExpression, Qt
+from PySide6.QtCore import QFile, QRegularExpression, Qt, QCoreApplication
 from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup, QColorDialog
 from pyqt_frameless_window import FramelessMainWindow
 from math import sqrt, atan2, cos, sin
@@ -974,6 +974,7 @@ class VisualizationWindow(FramelessMainWindow):
         return data
 
 if __name__ == "__main__":
+    QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     app.setStyleSheet("QMainWindow {background: '#171923';}") 
     window = MainWindow()
@@ -986,4 +987,3 @@ if __name__ == "__main__":
 # TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
 # TODO: pre kameru pridať velkosť obrazku do configu
 # TODO: dalšiu iteraciu navrhu .. že čo sa zmenilo
-# TODO: zavrieť všetky okná pri ukončení hlavnej aplikácie
