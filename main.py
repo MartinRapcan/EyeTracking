@@ -512,6 +512,7 @@ class MainWindow(FramelessMainWindow):
                 self.detectionRound = 1
                 self.renderImage()
             else:
+                self.rawDataFromDetection = {}
                 self.renderImage()
 
     def renderImage(self):
@@ -599,16 +600,12 @@ class MainWindow(FramelessMainWindow):
 
 class VisualizationWindow(FramelessMainWindow):
     loader = QUiLoader()
-    uv_coords = []	
-    dir_vectors = {}
     planeNormal = np.array([0, 1, 0])
     planeCenter = np.array([0, -500, 0])
     qimg = None
     color1 = (0, 0, 0)
     color2 = (255, 255, 255) 
     repeat = False
-    points_group = {}
-    points_group_keys = []
 
     def __init__(self, imagePath = None, rawData = None, heatmap = None, scanpath = None):
         super().__init__()
@@ -633,6 +630,10 @@ class VisualizationWindow(FramelessMainWindow):
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
 
+        self.uv_coords = []	
+        self.dir_vectors = {}
+        self.points_group = {}
+        self.points_group_keys = []
         self.imagePath = imagePath
         self.rawData = rawData
         self.heatmap = heatmap
@@ -772,72 +773,71 @@ class VisualizationWindow(FramelessMainWindow):
         threshold = 50
         order = 0
 
-        if not self.repeat:
-            self.repeat = True
-            for i in range(0, len(self.uv_coords)):
-                self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], image_width, image_height)
 
-            main_point = None
-            for i in range(0, len(self.uv_coords)):
-                if not main_point:
-                    main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
+        for i in range(0, len(self.uv_coords)):
+            self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], image_width, image_height)
 
-                if abs(self.uv_coords[i][0] - main_point[0]) <= threshold and abs(self.uv_coords[i][1] - main_point[1]) <= threshold:
-                    if not self.points_group.get(order):
-                        self.points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
-                    else:
-                        self.points_group[order]['points'].append(self.uv_coords[i])
-                
-                else:
-                    order += 1
-                    main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
+        main_point = None
+        for i in range(0, len(self.uv_coords)):
+            if not main_point:
+                main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
+
+            if abs(self.uv_coords[i][0] - main_point[0]) <= threshold and abs(self.uv_coords[i][1] - main_point[1]) <= threshold:
+                if not self.points_group.get(order):
                     self.points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
-
-            self.points_group = dict(sorted(self.points_group.items(), key=lambda item: len(item[1]['points']), reverse=False))
-            self.points_group_keys = list(self.points_group)    
-
-            for key in self.points_group:
-                points = self.points_group[key]['points']
-                x = 0
-                y = 0
-
-                for point in points:
-                    x += point[0]
-                    y += point[1]
-
-                x = int(x / len(points))
-                y = int(y / len(points))
-                self.points_group[key]['middle']['x'] = x
-                self.points_group[key]['middle']['y'] = y            
-
-            different_lengths = {}
-            for key in self.points_group:
-                if not different_lengths.get(len(self.points_group[key]['points'])):
-                    different_lengths[len(self.points_group[key]['points'])] = [key]
                 else:
-                    different_lengths[len(self.points_group[key]['points'])].append(key)
-
-            # base pixel for diameter ---- diameter = 20
-            # normalize between new_min and new_max ---- normalized_value = ((original_value - min_value) / (max_value - min_value)) * (new_max - new_min) + new_min
-            new_min = 1
-            new_max = 4
-            # normalize between 1 and 2 ---- normalized_value = (value - min_length) / (max_length - min_length) + 1
-
-            if len(different_lengths) > 1:
-                max_length = max(different_lengths)
-                min_length = min(different_lengths)
-                for value in different_lengths:
-                    normalized_value = ((value - min_length) / (max_length - min_length)) * (new_max - new_min) + new_min
-                    for key in different_lengths[value]:
-                        self.points_group[key]['diameter'] = int(20 * normalized_value)
+                    self.points_group[order]['points'].append(self.uv_coords[i])
+            
             else:
-                for key in different_lengths:
-                    for value in different_lengths[key]:
-                        self.points_group[value]['diameter'] = 20
-                    
+                order += 1
+                main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
+                self.points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
 
-            self.points_group = dict(sorted(self.points_group.items(), key=lambda item: item[1]['index'], reverse=False))
-            self.points_group_keys = list(self.points_group)
+        self.points_group = dict(sorted(self.points_group.items(), key=lambda item: len(item[1]['points']), reverse=False))
+        self.points_group_keys = list(self.points_group)    
+
+        for key in self.points_group:
+            points = self.points_group[key]['points']
+            x = 0
+            y = 0
+
+            for point in points:
+                x += point[0]
+                y += point[1]
+
+            x = int(x / len(points))
+            y = int(y / len(points))
+            self.points_group[key]['middle']['x'] = x
+            self.points_group[key]['middle']['y'] = y            
+
+        different_lengths = {}
+        for key in self.points_group:
+            if not different_lengths.get(len(self.points_group[key]['points'])):
+                different_lengths[len(self.points_group[key]['points'])] = [key]
+            else:
+                different_lengths[len(self.points_group[key]['points'])].append(key)
+
+        # base pixel for diameter ---- diameter = 20
+        # normalize between new_min and new_max ---- normalized_value = ((original_value - min_value) / (max_value - min_value)) * (new_max - new_min) + new_min
+        new_min = 1
+        new_max = 4
+        # normalize between 1 and 2 ---- normalized_value = (value - min_length) / (max_length - min_length) + 1
+
+        if len(different_lengths) > 1:
+            max_length = max(different_lengths)
+            min_length = min(different_lengths)
+            for value in different_lengths:
+                normalized_value = ((value - min_length) / (max_length - min_length)) * (new_max - new_min) + new_min
+                for key in different_lengths[value]:
+                    self.points_group[key]['diameter'] = int(20 * normalized_value)
+        else:
+            for key in different_lengths:
+                for value in different_lengths[key]:
+                    self.points_group[value]['diameter'] = 20
+                
+
+        self.points_group = dict(sorted(self.points_group.items(), key=lambda item: item[1]['index'], reverse=False))
+        self.points_group_keys = list(self.points_group)
 
         t = 1 / (len(self.points_group) - 1) 
         for key in self.points_group:
