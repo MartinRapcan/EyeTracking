@@ -5,6 +5,7 @@ import cv2
 import re
 import json
 import numpy as np
+import csv
 
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
@@ -603,12 +604,19 @@ class VisualizationWindow(FramelessMainWindow):
     def __init__(self, imagePath = None, rawData = None, heatmap = None, scanpath = None):
         super().__init__()
 
+        with open('./coordinates/random_uv_coords.csv') as f:
+            reader = csv.reader(f)
+            self.raw = list(map(lambda q: (float(q[0]), float(q[1])), reader))
+
+        self.raw = {i: self.raw[i] for i in range(0, len(self.raw))}
+
         self.loader = QUiLoader()
         self.planeNormal = np.array([0, 1, 0])
         self.planeCenter = np.array([0, -500, 0])
         self.qimg = None
         self.color1 = (0, 0, 0)
         self.color2 = (255, 255, 255) 
+        self.threshold = 1
 
         self.__mainWidget = QWidget()
         ui = QFile("ui/popupWindow.ui")
@@ -635,6 +643,7 @@ class VisualizationWindow(FramelessMainWindow):
         self.dir_vectors = {}
         self.points_group = {}
         self.repeat = False
+        self.thresholdChanged = False
         self.points_group_keys = []
         self.imagePath = imagePath
         self.rawData = rawData
@@ -643,17 +652,34 @@ class VisualizationWindow(FramelessMainWindow):
         self.__mainWidget.saveImage.clicked.connect(self.saveImage)
         self.__mainWidget.color1.clicked.connect(self.setFirstColor)
         self.__mainWidget.color2.clicked.connect(self.setSecondColor)
+
+        thresholdRegex = QRegularExpression("^(1?\d{1,2}|2[0-4]\d|25[0-5])$")
+        self.__mainWidget.thresholdInput.setValidator(QRegularExpressionValidator(thresholdRegex))
+        self.__mainWidget.thresholdInput.setText(str(self.threshold))
+        self.__mainWidget.thresholdInput.textChanged.connect(self.thresholdChange)
+        self.__mainWidget.thresholdButton.clicked.connect(self.changeThreshold)
         self.__mainWidget.color1.setStyleSheet(f'QPushButton {{background-color: #000000; border: 5px solid #FFE81F;}}')
         self.__mainWidget.color2.setStyleSheet(f'QPushButton {{background-color: #FFFFFF; border: 5px solid #FFE81F;}}')
         if not self.scanpath:
             self.__mainWidget.color1.hide()
             self.__mainWidget.color2.hide()
+            self.__mainWidget.thresholdLabel.hide()
+            self.__mainWidget.thresholdInput.hide()
+            self.__mainWidget.thresholdButton.hide()
 
         if self.rawData:
             self.rawToPoint()
 
         if self.imagePath:
             self.displayImage()
+
+    def changeThreshold(self):
+        self.displayImage()
+
+    def thresholdChange(self):
+        if self.__mainWidget.thresholdInput.text() != "":
+            self.thresholdChanged = False
+            self.threshold = int(self.__mainWidget.thresholdInput.text())
 
     def setFirstColor(self):
         color = QColorDialog.getColor()
@@ -760,11 +786,12 @@ class VisualizationWindow(FramelessMainWindow):
         image = cv2.imread(self.imagePath)
         image_width = image.shape[1]
         image_height = image.shape[0]
+        circle_radius = min(image_width, image_height) // 100
 
         overlay_circles = image.copy()
         overlay_lines = image.copy()
         alpha_circles = 0.6
-        outline_width = 10
+        outline_width = 3
         alpha_lines = 0.2
         TEXT_FACE = cv2.FONT_HERSHEY_SIMPLEX
         TEXT_SCALE = 0.8
@@ -772,19 +799,26 @@ class VisualizationWindow(FramelessMainWindow):
         TEXT_COLOR = (0, 0, 0)
 
         colors = {}
-        threshold = 50
         order = 0
-
+    
         if not self.repeat:
             for i in range(0, len(self.uv_coords)):
                 self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], image_width, image_height)
+            self.repeat = True
+            # for i in range(0, len(self.raw)):
+            #     self.uv_coords.append(self.convert_uv_to_px(self.raw[i], image_width, image_height))
+            # self.repeat = True
 
+        if not self.thresholdChanged:
+            self.thresholdChanged = True
+            self.points_group = {}
             main_point = None
+
             for i in range(0, len(self.uv_coords)):
                 if not main_point:
                     main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
 
-                if abs(self.uv_coords[i][0] - main_point[0]) <= threshold and abs(self.uv_coords[i][1] - main_point[1]) <= threshold:
+                if abs(self.uv_coords[i][0] - main_point[0]) <= self.threshold and abs(self.uv_coords[i][1] - main_point[1]) <= self.threshold:
                     if not self.points_group.get(order):
                         self.points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
                     else:
@@ -795,7 +829,7 @@ class VisualizationWindow(FramelessMainWindow):
                     main_point = (self.uv_coords[i][0], self.uv_coords[i][1])
                     self.points_group[order] = {'points': [self.uv_coords[i]], 'middle': {'x': 0, 'y': 0}, 'diameter': 0, 'index': order + 1}
 
-            self.points_group = dict(sorted(self.points_group.items(), key=lambda item: len(item[1]['points']), reverse=False))
+            # self.points_group = dict(sorted(self.points_group.items(), key=lambda item: len(item[1]['points']), reverse=False))
             self.points_group_keys = list(self.points_group)    
 
             for key in self.points_group:
@@ -831,16 +865,11 @@ class VisualizationWindow(FramelessMainWindow):
                 for value in different_lengths:
                     normalized_value = ((value - min_length) / (max_length - min_length)) * (new_max - new_min) + new_min
                     for key in different_lengths[value]:
-                        self.points_group[key]['diameter'] = int(20 * normalized_value)
+                        self.points_group[key]['diameter'] = int(circle_radius * normalized_value)
             else:
                 for key in different_lengths:
                     for value in different_lengths[key]:
-                        self.points_group[value]['diameter'] = 20
-                    
-
-            self.points_group = dict(sorted(self.points_group.items(), key=lambda item: item[1]['index'], reverse=False))
-            self.points_group_keys = list(self.points_group)
-            self.repeat = True
+                        self.points_group[value]['diameter'] = circle_radius
 
         t = 1 / (len(self.points_group) - 1) 
         for key in self.points_group:
@@ -987,3 +1016,4 @@ if __name__ == "__main__":
 # TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
 # TODO: pre kameru pridať velkosť obrazku do configu
 # TODO: dalšiu iteraciu navrhu .. že čo sa zmenilo
+# TODO: prerobiť veci v scanpath aby sa volalo iba to čo je potrebné

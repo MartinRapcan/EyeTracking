@@ -111,6 +111,57 @@ QPushButton:disabled {
     <string/>
    </property>
   </widget>
+  <widget class="QLineEdit" name="thresholdInput">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>576</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {
+border: 1px solid #FFE81F;
+color: white;
+}</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="thresholdButton">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>576</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
+}</string>
+   </property>
+   <property name="text">
+    <string>Apply Threshold</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
