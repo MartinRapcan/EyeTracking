@@ -13,6 +13,7 @@ from PySide6.QtCore import QFile, QRegularExpression, Qt, QCoreApplication
 from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup, QColorDialog
 from pyqt_frameless_window import FramelessMainWindow
 from math import sqrt, atan2, cos, sin
+from scipy.spatial.transform import Rotation
 from matplotlib import pyplot, use
 from pupil_detectors import Detector2D
 from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
@@ -613,6 +614,9 @@ class VisualizationWindow(FramelessMainWindow):
         self.loader = QUiLoader()
         self.planeNormal = np.array([0, 1, 0])
         self.planeCenter = np.array([0, -500, 0])
+        self.planeRot = np.array([0, 0, 180])
+        self.cameraPos = np.array([20, -50, -10])
+        self.cameraRot = np.array([90, 0, 0])
         self.qimg = None
         self.color1 = (0, 0, 0)
         self.color2 = (255, 255, 255) 
@@ -702,12 +706,24 @@ class VisualizationWindow(FramelessMainWindow):
         if fileName:
             self.qimg.save(fileName)
 
+    # TODO: dokončiť toto
+    # Rotation.align_vectors([[0,1,0],[0,0,1]],[[0,0,1],[0,-1,0]])[0].as_euler("zxy", degrees=True)
+    def look_at_mat(self, target, up, pos):
+        zaxis = self.normalize(target - pos)
+        xaxis = self.normalize(np.cross(up, zaxis))
+        yaxis = self.normalize(np.cross(zaxis, xaxis))
+        return np.array([xaxis, yaxis, zaxis]).T
 
     def dir_vector(self, vec1, vec2):
         return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
 
-    def transfer_vector(self, vec):
-        return [round(vec[0], 2), round(vec[2] - 50, 2), round(-vec[1], 2)]
+    def transfer_vector(self, vec, position, rotation):
+        #return [round(vec[0], 2), round(vec[2] - 50, 2), round(-vec[1], 2)]
+        return vec @ self.eulerToRot(rotation) + position
+
+    def eulerToRot(self, theta, degrees=True):
+        r = Rotation.from_euler("zxy", (theta[2], theta[0], theta[1]), degrees)
+        return r.as_matrix()
 
     def intersectPlane(self, n, p0, l0, l):
         denom = self.matmul(-n, l)
@@ -750,8 +766,10 @@ class VisualizationWindow(FramelessMainWindow):
 
     def rawToPoint(self):
         for i in self.rawData:
-            self.dir_vectors[i] = {"sphere": np.array(self.transfer_vector(self.rawData[i]["sphere"]["center"])),
-                                   "circle_3d": np.array(self.transfer_vector(self.rawData[i]["circle_3d"]["center"]))}
+            self.dir_vectors[i] = {"sphere": np.array(self.transfer_vector(self.rawData[i]["sphere"]["center"], 
+                                                                           self.cameraPos, self.cameraRot)),
+                                   "circle_3d": np.array(self.transfer_vector(self.rawData[i]["circle_3d"]["center"],
+                                                                              self.cameraPos, self.cameraRot))}
 
         for i in self.dir_vectors:
             rayOrigin = self.dir_vectors[i]["sphere"]
@@ -760,7 +778,9 @@ class VisualizationWindow(FramelessMainWindow):
             
             if (intersectionTime > 0.0):
                 planeIntersection = self.getPoint([rayOrigin, rayDirection], intersectionTime)
-                planeIntersection[0] = -planeIntersection[0]
+                # TODO: world to display local transformation
+                planeIntersection = self.transfer_vector(planeIntersection, self.planeCenter, self.planeRot)
+                #planeIntersection[0] = -planeIntersection[0] # otočena obrazovka
                 self.uv_coords.append(self.convert_to_uv(planeIntersection))
 
     def displayImage(self):
@@ -1017,3 +1037,8 @@ if __name__ == "__main__":
 # TODO: pre kameru pridať velkosť obrazku do configu
 # TODO: dalšiu iteraciu navrhu .. že čo sa zmenilo
 # TODO: prerobiť veci v scanpath aby sa volalo iba to čo je potrebné
+# TODO: obrazky v overleaf dať vedla seba ..
+# TODO: kapitola nema byť prazdna .. doplniť nejaky uvod ..
+# TODO: heatmapa a scanpath .. dať do vlastnej kapitoly a vysvetliť to .. dať to do analyzy
+# TODO: z druhej iteracie navrhu dať .. budeme potrebovať marker ..
+# TODO: možno opisať ako ziskať ppi monitora
