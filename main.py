@@ -667,7 +667,6 @@ class VisualizationWindow(FramelessMainWindow):
         if not self.scanpath:
             self.__mainWidget.color1.hide()
             self.__mainWidget.color2.hide()
-            self.__mainWidget.thresholdLabel.hide()
             self.__mainWidget.thresholdInput.hide()
             self.__mainWidget.thresholdButton.hide()
 
@@ -891,49 +890,51 @@ class VisualizationWindow(FramelessMainWindow):
                     for value in different_lengths[key]:
                         self.points_group[value]['diameter'] = circle_radius
 
-        t = 1 / (len(self.points_group) - 1) 
-        for key in self.points_group:
-            r = min(255, max(0, int(self.lerp(self.color1[0], self.color2[0], t))))
-            g = min(255, max(0, int(self.lerp(self.color1[1], self.color2[1], t))))
-            b = min(255, max(0, int(self.lerp(self.color1[2], self.color2[2], t))))
-            colors[key] = (r, g, b)
-            t += 1 / (len(self.points_group) - 1)
+        if len(self.points_group) > 1:
+            t = 1 / (len(self.points_group) - 1) 
+            for key in self.points_group:
+                r = min(255, max(0, int(self.lerp(self.color1[0], self.color2[0], t))))
+                g = min(255, max(0, int(self.lerp(self.color1[1], self.color2[1], t))))
+                b = min(255, max(0, int(self.lerp(self.color1[2], self.color2[2], t))))
+                colors[key] = (r, g, b)
+                t += 1 / (len(self.points_group) - 1)
 
-        for key in range(0, len(self.points_group) - 1):
-            x1 = self.points_group[self.points_group_keys[key]]['middle']['x']
-            y1 = self.points_group[self.points_group_keys[key]]['middle']['y']
-            x2 = self.points_group[self.points_group_keys[key + 1]]['middle']['x']
-            y2 = self.points_group[self.points_group_keys[key + 1]]['middle']['y']
-            radius1 = self.points_group[self.points_group_keys[key]]['diameter']
-            radius2 = self.points_group[self.points_group_keys[key + 1]]['diameter']
+            for key in range(0, len(self.points_group) - 1):
+                x1 = self.points_group[self.points_group_keys[key]]['middle']['x']
+                y1 = self.points_group[self.points_group_keys[key]]['middle']['y']
+                x2 = self.points_group[self.points_group_keys[key + 1]]['middle']['x']
+                y2 = self.points_group[self.points_group_keys[key + 1]]['middle']['y']
+                radius1 = self.points_group[self.points_group_keys[key]]['diameter']
+                radius2 = self.points_group[self.points_group_keys[key + 1]]['diameter']
 
-            distance = sqrt((x2 - x1)**2 + (y2 - y1)**2)
+                distance = sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-            if distance >= (radius1 + radius2):   
-                angle = atan2(y2 - y1, x2 - x1)
-                point1_x = x1 + (radius1 + outline_width // 2) * cos(angle)
-                point1_y = y1 + (radius1 + outline_width // 2) * sin(angle)
-                point2_x = x2 - (radius2 + outline_width // 2) * cos(angle)
-                point2_y = y2 - (radius2 + outline_width // 2) * sin(angle)
-                cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(self.points_group)[key]], 4)
-            
-            text_size, _ = cv2.getTextSize(str(self.points_group[self.points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
-            text_origin = (int(x1 - text_size[0] / 2), int(y1 + text_size[1] / 2))
-            
-            #cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], -1)
-            cv2.circle(overlay_circles, (x1, y1), radius1, colors[self.points_group_keys[key]], outline_width)
-            #cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
-            if key == len(self.points_group) - 2:
+                if distance >= (radius1 + radius2):   
+                    angle = atan2(y2 - y1, x2 - x1)
+                    point1_x = x1 + (radius1 + outline_width // 2) * cos(angle)
+                    point1_y = y1 + (radius1 + outline_width // 2) * sin(angle)
+                    point2_x = x2 - (radius2 + outline_width // 2) * cos(angle)
+                    point2_y = y2 - (radius2 + outline_width // 2) * sin(angle)
+                    cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(self.points_group)[key]], 4)
+                
                 text_size, _ = cv2.getTextSize(str(self.points_group[self.points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
-                text_origin = (int(x2 - text_size[0] / 2), int(y2 + text_size[1] / 2))
-                #cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], -1)
-                cv2.circle(overlay_circles, (x2, y2), radius2, colors[self.points_group_keys[key + 1]], outline_width)
-                #cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
+                text_origin = (int(x1 - text_size[0] / 2), int(y1 + text_size[1] / 2))
+                
+                #cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], -1)
+                cv2.circle(overlay_circles, (x1, y1), radius1, colors[self.points_group_keys[key]], outline_width)
+                #cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
+                if key == len(self.points_group) - 2:
+                    text_size, _ = cv2.getTextSize(str(self.points_group[self.points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
+                    text_origin = (int(x2 - text_size[0] / 2), int(y2 + text_size[1] / 2))
+                    #cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], -1)
+                    cv2.circle(overlay_circles, (x2, y2), radius2, colors[self.points_group_keys[key + 1]], outline_width)
+                    #cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
 
 
-        result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circles, 0)
-        result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
-        return result
+            result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circles, 0)
+            result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
+            return result
+        return image
     
     def heatmapVisualization(self):
         img = cv2.imread(self.imagePath)
