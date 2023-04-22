@@ -21,6 +21,7 @@ from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
 from scipy.spatial.transform import Rotation
 
 from matplotlib import pyplot, use
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Text3D
 use('Agg')
 
 
@@ -241,6 +242,7 @@ class MainWindow(FramelessMainWindow):
         self.radioButtons.addButton(self.__mainWidget.rawRadio)
         self.radioButtons.addButton(self.__mainWidget.ellipseRadio)
         self.radioButtons.addButton(self.__mainWidget.debugRadio)
+        self.radioButtons.addButton(self.__mainWidget.rayRadio)
         self.__mainWidget.ellipseRadio.setChecked(True)
         self.radioButtons.buttonClicked.connect(self.radioClicked)
 
@@ -583,6 +585,43 @@ class MainWindow(FramelessMainWindow):
                 360,
                 (0, 255, 0), 
             )
+        elif self.imageFlag == "3D" and self.clickedItem and self.rawDataFromDetection:
+            planeNormal = np.array([0, 1, 0])
+            planeCenter = np.array([0, -500, 0])
+            cameraPos = np.array([0, -50, 0])
+            cameraRot = np.array([90, 0, 0])
+            index = self.__mainWidget.listImages.row(self.clickedItem)
+            data = self.rawDataFromDetection[index]
+            dir_vector = {"sphere": np.array(self.transfer_vector(data["sphere"]["center"], 
+                                                                cameraPos, cameraRot)),
+                            "circle_3d": np.array(self.transfer_vector(data["circle_3d"]["center"],
+                                                                              cameraPos, cameraRot))}
+            rayOrigin = dir_vector["sphere"]
+            rayDirection = self.normalize(np.array(dir_vector["circle_3d"]) - dir_vector["sphere"])
+            intersectionTime = self.intersectPlane(planeNormal, planeCenter, rayOrigin, rayDirection)
+            planeIntersection = np.array([0, 0, 0])
+            if (intersectionTime > 0.0):
+                planeIntersection = self.getPoint([rayOrigin, rayDirection], intersectionTime)
+                # plot is drawn into positive numbers
+                planeIntersection[1] = -planeIntersection[1]
+                # horizontal axis has to be switched because of the direction of display
+                planeIntersection[0] = -planeIntersection[0]
+
+
+            image = cv2.cvtColor(self.visualizeRaycast([planeIntersection if planeIntersection.all() else (0, 0, 0)], 
+                                                       cameraPos, (0, 0, 0)), cv2.COLOR_BGR2RGB)
+            
+        else:
+            result_2d = self.previewDetector2d.detect(grayscale_array)                 
+            cv2.ellipse(
+                image,
+                tuple(int(v) for v in result_2d["ellipse"]["center"]),
+                tuple(int(v / 2) for v in result_2d["ellipse"]["axes"]),
+                result_2d["ellipse"]["angle"],
+                0,
+                360,
+                (0, 255, 0), 
+            )
 
         self.displayImage(image)
 
@@ -599,6 +638,115 @@ class MainWindow(FramelessMainWindow):
         outImage = outImage.rgbSwapped()
         self.__mainWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
         self.__mainWidget.imageLabel.setScaledContents(True)
+
+    def dir_vector(self, vec1, vec2):
+        return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
+
+    def transfer_vector(self, vec, position, rotation):
+        return vec @ self.eulerToRot(rotation) + position
+
+    def eulerToRot(self, theta, degrees=True):
+        r = Rotation.from_euler("zxy", (theta[2], theta[0], theta[1]), degrees)
+        return r.as_matrix()
+
+    def intersectPlane(self, n, p0, l0, l):
+        denom = self.matmul(-n, l)
+        if (denom > sys.float_info.min):
+            p0l0 = p0 - l0
+            t = self.matmul(p0l0, -n) / denom
+            return t
+        return -1.0
+        
+    def matmul(self, v1, v2, pad=False, padBy=1.0):
+        if(pad is True):
+            return np.matmul(v1, np.append(v2, padBy))[:-1]
+        return np.matmul(v1, v2)
+        
+    def getPoint(self, ray, distance):
+        return ray[0] + ray[1] * distance
+
+    def normalize(self, v):
+        return v / self.magnitude(v)
+        
+    def magnitude(self, v):
+        return np.sqrt(self.sqrMagnitude(v))
+            
+    def sqrMagnitude(self, v):
+        return self.matmul(v, v)
+
+    def visualizeRaycast(self, raycastEnd, cameraPos, cameraTarget, screenWidth = 250, screenHeight = 250, rayNumber = 1):
+        fig = pyplot.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Set limit for each axis
+        ax.set_xlim(-250, 250)
+        ax.set_ylim(0, 500)
+        ax.set_zlim(-250, 250)
+
+        # Set label for each axis
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+
+        # Display
+        r = 125
+        x1 = r
+        y1 = 500
+        z1 = r
+        x2 = - r
+        y2 = 500
+        z2 = - r
+        verts = [(x1, y1, z1), (x2, y1, z1), (x2, y2, z2), (x1, y2, z2)]
+        ax.add_collection3d(Poly3DCollection([verts], facecolors='gray', linewidths=1, edgecolors='r', alpha=.25))
+
+        # Display label
+        x, y, z = 130, 500, 130
+        text = Text3D(x, y, z, 'Display', zdir='x')
+        ax.add_artist(text)
+
+        # Eye
+        u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+        x3 = 10 * np.cos(u)*np.sin(v)
+        y3 = 10 * np.sin(u)*np.sin(v)
+        z3 = 10 * np.cos(v)
+        ax.plot_wireframe(x3, y3, z3, color="gray", facecolors='gray')
+
+        # Camera label
+        x, y, z = 7, 0, 7
+        text = Text3D(x, y, z, 'Eye', zdir='x')
+        ax.add_artist(text)
+
+        # Camera
+        u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+        x3 = 10 * np.cos(u)*np.sin(v) + -1 * cameraPos[0] # switch x axis because of the global axis
+        y3 = 10 * np.sin(u)*np.sin(v) + -1 * cameraPos[1] # switch y axis because of the global axis
+        z3 = 10 * np.cos(v) + cameraPos[2]
+        ax.plot_wireframe(x3, y3, z3, color="green", facecolors='green')
+
+        # Camera label
+        x, y, z = cameraPos[0] + 7, -1 * cameraPos[1], cameraPos[2] + 7
+        text = Text3D(x, y, z, 'Camera', zdir='x')
+        ax.add_artist(text)
+
+        # Camera target
+        x_start, y_start, z_start = -1 * cameraPos[0], -1 * cameraPos[1], cameraPos[2]
+        x_end, y_end, z_end = cameraTarget[0], cameraTarget[1], cameraTarget[2]
+        ax.plot([x_start, x_end], [y_start, y_end], [z_start, z_end], color='green', linewidth=1)
+
+        for i in range(rayNumber):
+            x_start, y_start, z_start = 0, 0, 0
+            x_end, y_end, z_end = raycastEnd[i][0], raycastEnd[i][1], raycastEnd[i][2]
+            ax.plot([x_start, x_end], [y_start, y_end], [z_start, z_end], color='red', linewidth=1)
+
+
+        ax.view_init(elev=10, azim=-60)
+        fig.set_size_inches(6.4, 4.8)
+        fig.tight_layout()
+        fig.canvas.draw()
+        data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        pyplot.close(fig)
+        return data
 
     def closeEvent(self, event):
         for i in self.openedWindows:
@@ -765,10 +913,9 @@ class VisualizationWindow(FramelessMainWindow):
         if flip_y:
             y = 1 - y
         
-        # if x < 0 or x > 1 or y < 0 or y > 1:
-        #     return None
-        # return (x, y)
-        return (max(0, min(1, x)), max(0, min(1, y)))
+        if x < 0 or x > 1 or y < 0 or y > 1:
+            return None
+        return (x, y)
 
     def rawToPoint(self):
         for i in self.rawData:
@@ -910,43 +1057,44 @@ class VisualizationWindow(FramelessMainWindow):
                 b = min(255, max(0, int(self.lerp(self.color1[2], self.color2[2], t))))
                 colors[key] = (r, g, b)
                 t += 1 / (len(self.points_group) - 1)
+        else:
+            colors[0] = (255, 255, 255)
 
-            for key in range(0, len(self.points_group) - 1):
-                x1 = self.points_group[self.points_group_keys[key]]['middle']['x']
-                y1 = self.points_group[self.points_group_keys[key]]['middle']['y']
-                x2 = self.points_group[self.points_group_keys[key + 1]]['middle']['x']
-                y2 = self.points_group[self.points_group_keys[key + 1]]['middle']['y']
-                radius1 = self.points_group[self.points_group_keys[key]]['diameter']
-                radius2 = self.points_group[self.points_group_keys[key + 1]]['diameter']
+        for key in range(0, len(self.points_group) - 1):
+            x1 = self.points_group[self.points_group_keys[key]]['middle']['x']
+            y1 = self.points_group[self.points_group_keys[key]]['middle']['y']
+            x2 = self.points_group[self.points_group_keys[key + 1]]['middle']['x']
+            y2 = self.points_group[self.points_group_keys[key + 1]]['middle']['y']
+            radius1 = self.points_group[self.points_group_keys[key]]['diameter']
+            radius2 = self.points_group[self.points_group_keys[key + 1]]['diameter']
 
-                distance = sqrt((x2 - x1)**2 + (y2 - y1)**2)
+            distance = sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-                if distance >= (radius1 + radius2):   
-                    angle = atan2(y2 - y1, x2 - x1)
-                    point1_x = x1 + (radius1 + outline_width // 2) * cos(angle)
-                    point1_y = y1 + (radius1 + outline_width // 2) * sin(angle)
-                    point2_x = x2 - (radius2 + outline_width // 2) * cos(angle)
-                    point2_y = y2 - (radius2 + outline_width // 2) * sin(angle)
-                    cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(self.points_group)[key]], 4)
-                
+            if distance >= (radius1 + radius2):   
+                angle = atan2(y2 - y1, x2 - x1)
+                point1_x = x1 + (radius1 + outline_width // 2) * cos(angle)
+                point1_y = y1 + (radius1 + outline_width // 2) * sin(angle)
+                point2_x = x2 - (radius2 + outline_width // 2) * cos(angle)
+                point2_y = y2 - (radius2 + outline_width // 2) * sin(angle)
+                cv2.line(overlay_lines, (int(point1_x), int(point1_y)), (int(point2_x), int(point2_y)), colors[list(self.points_group)[key]], 4)
+            
+            text_size, _ = cv2.getTextSize(str(self.points_group[self.points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
+            text_origin = (int(x1 - text_size[0] / 2), int(y1 + text_size[1] / 2))
+            
+            #cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], -1)
+            cv2.circle(overlay_circles, (x1, y1), radius1, colors[self.points_group_keys[key]], outline_width)
+            #cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
+            if key == len(self.points_group) - 2:
                 text_size, _ = cv2.getTextSize(str(self.points_group[self.points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
-                text_origin = (int(x1 - text_size[0] / 2), int(y1 + text_size[1] / 2))
-                
-                #cv2.circle(overlay_circles, (x1, y1), radius1, colors[points_group_keys[key]], -1)
-                cv2.circle(overlay_circles, (x1, y1), radius1, colors[self.points_group_keys[key]], outline_width)
-                #cv2.putText(overlay_circles, str(points_group[points_group_keys[key]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
-                if key == len(self.points_group) - 2:
-                    text_size, _ = cv2.getTextSize(str(self.points_group[self.points_group_keys[key]]['index']), TEXT_FACE, TEXT_SCALE, TEXT_THICKNESS)
-                    text_origin = (int(x2 - text_size[0] / 2), int(y2 + text_size[1] / 2))
-                    #cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], -1)
-                    cv2.circle(overlay_circles, (x2, y2), radius2, colors[self.points_group_keys[key + 1]], outline_width)
-                    #cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
+                text_origin = (int(x2 - text_size[0] / 2), int(y2 + text_size[1] / 2))
+                #cv2.circle(overlay_circles, (x2, y2), radius2, colors[points_group_keys[key + 1]], -1)
+                cv2.circle(overlay_circles, (x2, y2), radius2, colors[self.points_group_keys[key + 1]], outline_width)
+                #cv2.putText(overlay_circles, str(points_group[points_group_keys[key + 1]]['index']), text_origin, TEXT_FACE, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS, cv2.LINE_AA)
 
 
-            result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circles, 0)
-            result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
-            return result
-        return image
+        result = cv2.addWeighted(overlay_circles, alpha_circles, image, 1 - alpha_circles, 0)
+        result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
+        return result
 
     
     def heatmapVisualization(self):
@@ -1036,7 +1184,7 @@ class VisualizationWindow(FramelessMainWindow):
         fig.canvas.draw()
         data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
         data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-
+        pyplot.close(fig)
         return data
 
 if __name__ == "__main__":

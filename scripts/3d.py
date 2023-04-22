@@ -3,7 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Text3D
 import numpy as np
 
-def visualizeRaycast(raycastEnd, cameraPos, screenWidth = 250, screenHeight = 250, rayNumber = 1):
+def visualizeRaycast(raycastEnd, cameraPos, cameraTarget, screenWidth = 250, screenHeight = 250, rayNumber = 1):
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -58,6 +58,10 @@ def visualizeRaycast(raycastEnd, cameraPos, screenWidth = 250, screenHeight = 25
     text = Text3D(x, y, z, 'Camera', zdir='x')
     ax.add_artist(text)
 
+    x_start, y_start, z_start = cameraPos[0], -1 * cameraPos[1], cameraPos[2]
+    x_end, y_end, z_end = cameraTarget[0], cameraTarget[1], cameraTarget[2]
+    ax.plot([x_start, x_end], [y_start, y_end], [z_start, z_end], color='green', linewidth=1)
+
     for i in range(rayNumber):
         x_start, y_start, z_start = 0, 0, 0
         x_end, y_end, z_end = raycastEnd[i]
@@ -66,9 +70,12 @@ def visualizeRaycast(raycastEnd, cameraPos, screenWidth = 250, screenHeight = 25
 
 
     ax.view_init(elev=10, azim=-45)
-    fig.set_size_inches(10, 10)
-    plt.show()
-    plt.savefig('3d_plot.png', dpi=100, bbox_inches='tight')
+    fig.tight_layout(pad=0, w_pad=0, h_pad=0)
+    plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+    plt.margins(0,0,0)
+    fig.set_size_inches(6.4, 4.8)
+    
+    plt.savefig('3d_plot.png', dpi=100)
 
 if __name__ == "__main__":
-    visualizeRaycast([(0, 500, 100)], (20, -50, -10))
+    visualizeRaycast([(0, 500, 100)], (0, -50, 0), (0, 0, 0))
