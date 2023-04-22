@@ -10,7 +10,7 @@ import csv
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
 from PySide6.QtCore import QFile, QRegularExpression, Qt, QCoreApplication
-from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup, QColorDialog
+from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup, QColorDialog, QVBoxLayout
 from pyqt_frameless_window import FramelessMainWindow
 from math import sqrt, atan2, cos, sin
 from scipy.spatial.transform import Rotation
@@ -1035,12 +1035,41 @@ class VisualizationWindow(FramelessMainWindow):
 
         return data
 
+
+class RaycastVisualizationWindow(FramelessMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.__mainWidget = QWidget()
+        # ui = QFile("ui/main.ui")
+        # ui.open(QFile.ReadOnly)
+        # self.__mainWidget = self.loader.load(ui)
+        # ui.close()
+        self.setWindowTitle("Raycast Visualization")
+        self.setWindowIcon('public/light.png')
+        self.mainWidget = self.centralWidget()
+        lay = self.mainWidget.layout()
+        lay.addWidget(self.__mainWidget)
+        self.mainWidget.setLayout(lay)
+        self.setCentralWidget(self.mainWidget)
+        self.setGeometry(200, 50, 800, 635)
+        self.setFixedSize(800, 635)
+        titleBar = self.getTitleBar()
+        titleBar.setFixedHeight(35)
+
+        for button in titleBar.findChildren(QPushButton):
+            button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
+        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
+        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
+
+
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     app.setStyleSheet("QMainWindow {background: '#171923';}") 
     window = MainWindow()
     window.show()
+    #ray = RaycastVisualizationWindow()
+    #ray.show()
     sys.exit(app.exec_())
 
 # TODO: kalibracia a validacia
