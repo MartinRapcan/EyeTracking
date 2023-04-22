@@ -19,6 +19,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self._main)
         layout = QtWidgets.QVBoxLayout(self._main)
 
+        print(layout)
+
         self.resize(800, 600)
         self.setFixedSize(self.size())
 

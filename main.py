@@ -7,16 +7,20 @@ import json
 import numpy as np
 import csv
 
+from math import sqrt, atan2, cos, sin
+
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
 from PySide6.QtCore import QFile, QRegularExpression, Qt, QCoreApplication
 from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup, QColorDialog, QVBoxLayout
 from pyqt_frameless_window import FramelessMainWindow
-from math import sqrt, atan2, cos, sin
-from scipy.spatial.transform import Rotation
-from matplotlib import pyplot, use
+
 from pupil_detectors import Detector2D
 from pye3d.detector_3d import CameraModel, Detector3D, DetectorMode
+
+from scipy.spatial.transform import Rotation
+
+from matplotlib import pyplot, use
 use('Agg')
 
 
@@ -615,7 +619,7 @@ class VisualizationWindow(FramelessMainWindow):
         self.planeNormal = np.array([0, 1, 0])
         self.planeCenter = np.array([0, -500, 0])
         self.planeRot = np.array([0, 0, 180])
-        self.cameraPos = np.array([20, -50, -10])
+        self.cameraPos = np.array([0, -50, 0])
         self.cameraRot = np.array([90, 0, 0])
         self.qimg = None
         self.color1 = (0, 0, 0)
@@ -757,14 +761,14 @@ class VisualizationWindow(FramelessMainWindow):
 
     def convert_to_uv(self, vec, size_x=250, size_y=250, flip_y=True):
         x = (vec[0] + size_x / 2) / size_x
+        y = (vec[2] + size_y / 2) / size_y
         if flip_y:
-            y = (-vec[2] + size_y / 2) / size_y
-        else:
-            y = (vec[2] + size_y / 2) / size_y
-
-        if x < 0 or x > 1 or y < 0 or y > 1:
-            return None
-        return (x, y)
+            y = 1 - y
+        
+        # if x < 0 or x > 1 or y < 0 or y > 1:
+        #     return None
+        # return (x, y)
+        return (max(0, min(1, x)), max(0, min(1, y)))
 
     def rawToPoint(self):
         for i in self.rawData:
@@ -1035,41 +1039,12 @@ class VisualizationWindow(FramelessMainWindow):
 
         return data
 
-
-class RaycastVisualizationWindow(FramelessMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.__mainWidget = QWidget()
-        # ui = QFile("ui/main.ui")
-        # ui.open(QFile.ReadOnly)
-        # self.__mainWidget = self.loader.load(ui)
-        # ui.close()
-        self.setWindowTitle("Raycast Visualization")
-        self.setWindowIcon('public/light.png')
-        self.mainWidget = self.centralWidget()
-        lay = self.mainWidget.layout()
-        lay.addWidget(self.__mainWidget)
-        self.mainWidget.setLayout(lay)
-        self.setCentralWidget(self.mainWidget)
-        self.setGeometry(200, 50, 800, 635)
-        self.setFixedSize(800, 635)
-        titleBar = self.getTitleBar()
-        titleBar.setFixedHeight(35)
-
-        for button in titleBar.findChildren(QPushButton):
-            button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
-        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
-        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
-
-
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     app.setStyleSheet("QMainWindow {background: '#171923';}") 
     window = MainWindow()
     window.show()
-    #ray = RaycastVisualizationWindow()
-    #ray.show()
     sys.exit(app.exec_())
 
 # TODO: kalibracia a validacia
@@ -1084,3 +1059,4 @@ if __name__ == "__main__":
 # TODO: heatmapa a scanpath .. dať do vlastnej kapitoly a vysvetliť to .. dať to do analyzy
 # TODO: z druhej iteracie navrhu dať .. budeme potrebovať marker ..
 # TODO: možno opisať ako ziskať ppi monitora
+# TODO: save raycast as image and display it
