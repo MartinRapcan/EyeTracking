@@ -761,7 +761,10 @@ class VisualizationWindow(FramelessMainWindow):
             y = (-vec[2] + size_y / 2) / size_y
         else:
             y = (vec[2] + size_y / 2) / size_y
-        return (max(0, min(1, x)), max(0, min(1, y)))
+
+        if x < 0 or x > 1 or y < 0 or y > 1:
+            return None
+        return (x, y)
 
     def rawToPoint(self):
         for i in self.rawData:
@@ -780,7 +783,9 @@ class VisualizationWindow(FramelessMainWindow):
                 # TODO: world to display local transformation
                 planeIntersection = self.transfer_vector(planeIntersection, self.planeCenter, self.planeRot)
                 #planeIntersection[0] = -planeIntersection[0] # otočena obrazovka
-                self.uv_coords.append(self.convert_to_uv(planeIntersection))
+                result = self.convert_to_uv(planeIntersection)
+                if result:
+                    self.uv_coords.append(result)
 
     def displayImage(self):
         image = None
@@ -802,6 +807,9 @@ class VisualizationWindow(FramelessMainWindow):
             self.__mainWidget.image.setAlignment(Qt.AlignCenter)
 
     def scanpathVisualization(self):
+        if not len(self.uv_coords):
+            return cv2.imread(self.imagePath)
+
         image = cv2.imread(self.imagePath)
         image_width = image.shape[1]
         image_height = image.shape[0]
@@ -935,8 +943,12 @@ class VisualizationWindow(FramelessMainWindow):
             result = cv2.addWeighted(overlay_lines, alpha_lines, result, 1 - alpha_lines, 0)
             return result
         return image
+
     
     def heatmapVisualization(self):
+        if not len(self.uv_coords):
+            return cv2.imread(self.imagePath)
+
         img = cv2.imread(self.imagePath)
 
         dpi = 100.0
