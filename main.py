@@ -585,6 +585,9 @@ class MainWindow(FramelessMainWindow):
                 360,
                 (0, 255, 0), 
             )
+
+        # TODO: zistiť či nebeži cyklus .. pretože data sa premažu ale v liste obrazky ostanu
+        # TODO: nastane index error ked chceli 3D debug
         elif self.imageFlag == "3D" and self.clickedItem and self.rawDataFromDetection:
             planeNormal = np.array([0, 1, 0])
             planeCenter = np.array([0, -500, 0])
