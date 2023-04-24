@@ -75,7 +75,7 @@ def visualizeRaycast(raycastEnd, cameraPos, cameraTarget, screenWidth = 250, scr
     plt.margins(0,0,0)
     fig.set_size_inches(6.4, 4.8)
     
-    plt.savefig('3d_plot.png', dpi=100)
+    plt.savefig('.\images\\3d_plot.png', dpi=100)
 
 if __name__ == "__main__":
     visualizeRaycast([(0, 500, 100)], (0, -50, 0), (0, 0, 0))
