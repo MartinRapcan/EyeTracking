@@ -4115,7 +4115,10 @@ background-color: #ccba18;
 
 QPushButton:pressed {
 background-color: #ccba18;
+}
 
+QPushButton:disabled {
+    background-color:  #87814c;
 }</string>
    </property>
    <property name="text">

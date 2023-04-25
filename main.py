@@ -259,6 +259,7 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.startButton.setEnabled(False)
         self.__mainWidget.startButton.clicked.connect(self.startDetection)
         self.__mainWidget.calibrate.clicked.connect(self.openCalibrationWindow)
+        self.__mainWidget.calibrate.setEnabled(False)
         self.__mainWidget.reanalyze.clicked.connect(self.reanalyze)
         self.__mainWidget.loadImage.clicked.connect(self.loadImage)
         self.__mainWidget.scanpath.clicked.connect(self.showScanpath)
@@ -569,6 +570,7 @@ class MainWindow(FramelessMainWindow):
         if self.imagePath:
             self.clickedItem = None
             self.__mainWidget.rayRadio.setEnabled(False)
+            self.__mainWidget.calibrate.setEnabled(False)
             if self.detectionRound == 0:
                 self.renderImage()
                 if self.fillImageList == 0:
@@ -579,6 +581,7 @@ class MainWindow(FramelessMainWindow):
                 self.rawDataFromDetection = {}
                 self.renderImage()
             self.__mainWidget.rayRadio.setEnabled(True)
+            self.__mainWidget.calibrate.setEnabled(True)
 
     def renderImage(self):
         fileName = self.imageName.split("_")
@@ -1263,6 +1266,19 @@ class CalibrationWindow(FramelessMainWindow):
         self.scaleY = None
         self.imageWidth = None
         self.imageHeight = None
+        self.button = None
+        self.radius = 20
+        self.color = (0, 0, 0)
+        self.circleRadius = 10
+        self.repeat = False
+        self.uv_coords = []
+        self.planeNormal = np.array([0, 1, 0])
+        self.planeCenter = np.array([0, -500, 0])
+        self.planeRot = np.array([0, 0, 180])
+        self.cameraPos = np.array([0, -50, 0])
+        self.cameraRot = np.array([90, 0, 0])
+        self.dir_vectors = {}
+        self.pointsInRadius = []
 
         self.loader = QUiLoader()
         self.planeNormal = np.array([0, 1, 0])
@@ -1291,6 +1307,101 @@ class CalibrationWindow(FramelessMainWindow):
             button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
+
+        self.rawToPoint()
+        self.drawPoints()
+        self.displayImage()
+
+    def dir_vector(self, vec1, vec2):
+        return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
+
+    def transfer_vector(self, vec, position, rotation):
+        #return [round(vec[0], 2), round(vec[2] - 50, 2), round(-vec[1], 2)]
+        return vec @ self.eulerToRot(rotation) + position
+
+    def eulerToRot(self, theta, degrees=True):
+        r = Rotation.from_euler("zxy", (theta[2], theta[0], theta[1]), degrees)
+        return r.as_matrix()
+
+    def intersectPlane(self, n, p0, l0, l):
+        denom = self.matmul(-n, l)
+        if (denom > sys.float_info.min):
+            p0l0 = p0 - l0
+            t = self.matmul(p0l0, -n) / denom
+            return t
+        return -1.0
+        
+    def matmul(self, v1, v2, pad=False, padBy=1.0):
+        if(pad is True):
+            return np.matmul(v1, np.append(v2, padBy))[:-1]
+        return np.matmul(v1, v2)
+        
+    def getPoint(self, ray, distance):
+        return ray[0] + ray[1] * distance
+
+    def normalize(self, v):
+        return v / self.magnitude(v)
+        
+    def magnitude(self, v):
+        return np.sqrt(self.sqrMagnitude(v))
+            
+    def sqrMagnitude(self, v):
+        return self.matmul(v, v)
+
+    def lerp(self, a, b, t):
+        return (1 - t) * a + t * b
+
+    def convert_uv_to_px(self, uv_data, width, height):
+        # TODO: tu pozrieť či je 0 - 1
+        return (int(uv_data[0] * width), int(uv_data[1] * height))
+
+    def convert_to_uv(self, vec, size_x=250, size_y=250, flip_y=True):
+        x = (vec[0] + size_x / 2) / size_x
+        y = (vec[2] + size_y / 2) / size_y
+        if flip_y:
+            y = 1 - y
+        
+        # TODO: vratiť ich aj ked su mimo
+        if x < 0 or x > 1 or y < 0 or y > 1:
+            return None
+        return (x, y)
+
+    def rawToPoint(self):
+        for i in self.rawData:
+            self.dir_vectors[i] = {"sphere": np.array(self.transfer_vector(self.rawData[i]["sphere"]["center"], 
+                                                                           self.cameraPos, self.cameraRot)),
+                                   "circle_3d": np.array(self.transfer_vector(self.rawData[i]["circle_3d"]["center"],
+                                                                              self.cameraPos, self.cameraRot))}
+
+        for i in self.dir_vectors:
+            rayOrigin = self.dir_vectors[i]["sphere"]
+            rayDirection = self.normalize(np.array(self.dir_vectors[i]["circle_3d"]) - self.dir_vectors[i]["sphere"])
+            intersectionTime = self.intersectPlane(self.planeNormal, self.planeCenter, rayOrigin, rayDirection)
+            
+            if (intersectionTime > 0.0):
+                planeIntersection = self.getPoint([rayOrigin, rayDirection], intersectionTime)
+                # TODO: world to display local transformation
+                planeIntersection = self.transfer_vector(planeIntersection, self.planeCenter, self.planeRot)
+                #planeIntersection[0] = -planeIntersection[0] # otočena obrazovka
+                result = self.convert_to_uv(planeIntersection)
+                if result:
+                    self.uv_coords.append(result)
+
+    def drawPoints(self):
+        if not self.repeat:
+            for i in range(0, len(self.uv_coords)):
+                self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], self.image.shape[1], self.image.shape[0])
+            self.repeat = True
+
+        for i in range(0, len(self.uv_coords)):
+            cv2.circle(self.image, self.uv_coords[i], self.circleRadius, self.color, -1)
+
+    def reDrawPoints(self):
+        for i in self.uv_coords:
+            if i in self.pointsInRadius:
+                cv2.circle(self.image, i, self.circleRadius, (255, 0, 0), -1)
+            else:
+                cv2.circle(self.image, i, self.circleRadius, self.color, -1)
 
         self.displayImage()
 
@@ -1329,15 +1440,28 @@ class CalibrationWindow(FramelessMainWindow):
             self.__mainWidget.image.setPixmap(QPixmap.fromImage(self.qimg))
             self.__mainWidget.image.setAlignment(Qt.AlignCenter)
 
+    # check if point is in radius of circle
+    def distance(self, p1, p2):
+        return sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
     def mousePressEvent(self, event):
         x, y = event.pos().x(), event.pos().y()
-        
-        if y > 35 + self.imageY and y < 35 + self.imageY + self.imageHeight and x >= 0 + self.imageX and x <= self.imageX + self.imageWidth:
-            print("Clicked on image")
-            x = (x - self.imageX) / self.scaleX
-            y = (y - self.imageY - 35) / self.scaleY
-            print(x, y)
+
+        if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
+            self.button = 'left' if event.button() == Qt.LeftButton else 'right'
+            if y > 35 + self.imageY and y < 35 + self.imageY + self.imageHeight and x >= 0 + self.imageX and x <= self.imageX + self.imageWidth:
+                x = (x - self.imageX) / self.scaleX
+                y = (y - self.imageY - 35) / self.scaleY
+                for i in self.uv_coords:
+                    if self.distance(i, (x, y)) <= self.radius:
+                        if self.button == 'left':
+                            if not i in self.pointsInRadius:
+                                self.pointsInRadius.append(i)
+                        elif self.button == 'right':
+                            if i in self.pointsInRadius:
+                                self.pointsInRadius.remove(i)
+
+                self.reDrawPoints()
 
 
 if __name__ == "__main__":
