@@ -67,7 +67,7 @@ border: 1px solid #FFE81F;
   <widget class="QPushButton" name="startButton">
    <property name="geometry">
     <rect>
-     <x>890</x>
+     <x>790</x>
      <y>70</y>
      <width>100</width>
      <height>25</height>
@@ -135,9 +135,9 @@ background-color: #ccba18;
   <widget class="QLabel" name="imagePath">
    <property name="geometry">
     <rect>
-     <x>890</x>
+     <x>790</x>
      <y>110</y>
-     <width>100</width>
+     <width>200</width>
      <height>25</height>
     </rect>
    </property>
@@ -3632,6 +3632,217 @@ QPushButton:disabled {
      <string>Load saved</string>
     </property>
    </widget>
+   <widget class="QLabel" name="label_42">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>130</y>
+      <width>300</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 20px;
+font-weight: bold;
+}</string>
+    </property>
+    <property name="text">
+     <string>3D debug</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_37" native="true">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>170</y>
+      <width>300</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>300</width>
+      <height>41</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>300</width>
+      <height>41</height>
+     </size>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <widget class="QLineEdit" name="elev">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>8</y>
+       <width>100</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+border: 1px solid #FFE81F;
+color: white;
+}</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_43">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>8</y>
+       <width>181</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+     </property>
+     <property name="text">
+      <string>Graph elevation</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="widget_38" native="true">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>211</y>
+      <width>300</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>300</width>
+      <height>41</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>300</width>
+      <height>41</height>
+     </size>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <widget class="QLineEdit" name="azim">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>8</y>
+       <width>100</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+border: 1px solid #FFE81F;
+color: white;
+}</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_44">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>8</y>
+       <width>181</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+     </property>
+     <property name="text">
+      <string>Graph azimuth</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QWidget" name="widget_36" native="true">
    <property name="geometry">
@@ -3733,9 +3944,12 @@ font-weight: bold;
      <string notr="true">QRadioButton {
 border: none;
 color: #FFE81F;
-background: none;
 font-size: 14px;
 font-weight: bold;
+}
+
+QRadioButton:disabled {
+	color: #87814c;
 }</string>
     </property>
     <property name="text">
@@ -3746,7 +3960,7 @@ font-weight: bold;
   <widget class="QLabel" name="label_41">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>510</x>
      <y>20</y>
      <width>221</width>
      <height>31</height>
@@ -3771,7 +3985,7 @@ font-weight: bold;
   <widget class="QPushButton" name="heatmap">
    <property name="geometry">
     <rect>
-     <x>690</x>
+     <x>630</x>
      <y>60</y>
      <width>100</width>
      <height>25</height>
@@ -3807,7 +4021,7 @@ QPushButton:disabled {
   <widget class="QPushButton" name="scanpath">
    <property name="geometry">
     <rect>
-     <x>690</x>
+     <x>630</x>
      <y>100</y>
      <width>100</width>
      <height>25</height>
@@ -3843,7 +4057,7 @@ QPushButton:disabled {
   <widget class="QPushButton" name="rawImage">
    <property name="geometry">
     <rect>
-     <x>690</x>
+     <x>630</x>
      <y>140</y>
      <width>100</width>
      <height>25</height>
@@ -3874,6 +4088,38 @@ QPushButton:disabled {
    </property>
    <property name="text">
     <string>Raw image</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="calibrate">
+   <property name="geometry">
+    <rect>
+     <x>890</x>
+     <y>70</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+
+}</string>
+   </property>
+   <property name="text">
+    <string>Calibrate</string>
    </property>
   </widget>
  </widget>

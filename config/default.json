@@ -36,5 +36,7 @@
         "model_warmup_duration": 5.0,
         "calculate_rms_residual": 0
     },
-    "focal_length":561.5
+    "focal_length":561.5,
+    "elev": 10,
+    "azim": 315
  }

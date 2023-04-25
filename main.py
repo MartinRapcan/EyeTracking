@@ -85,6 +85,10 @@ class MainWindow(FramelessMainWindow):
         with open('config/default.json') as json_file:
             self.default_config = json.load(json_file)
 
+        # Graph config values
+        self.__mainWidget.elev.setText(str(self.config['elev']))
+        self.__mainWidget.azim.setText(str(self.config['azim']))
+
         # Camera config values
         self.__mainWidget.focalLength.setText(str(self.config['focal_length']))
 
@@ -130,6 +134,12 @@ class MainWindow(FramelessMainWindow):
         integerRegex = QRegularExpression("^0|[1-9]\\d*$")
         boolRegex = QRegularExpression("^True|False$")
         detectorModeRegex = QRegularExpression("^blocking|asynchronous$")
+        # from 0 to 360
+        graphParamRegex = QRegularExpression("^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-9][0-9]|3[0-5][0-9]|360)$")
+
+        # Graph validation
+        self.__mainWidget.elev.setValidator(QRegularExpressionValidator(graphParamRegex))
+        self.__mainWidget.azim.setValidator(QRegularExpressionValidator(graphParamRegex))
 
         # Camera validation
         self.__mainWidget.focalLength.setValidator(QRegularExpressionValidator(floatingRegex))
@@ -170,6 +180,10 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.modelUpdateIntervalUltLongTerm.setValidator(QRegularExpressionValidator(floatingRegex))
         self.__mainWidget.modelWarmupDuration.setValidator(QRegularExpressionValidator(floatingRegex))
         self.__mainWidget.calculateRmsResidual.setValidator(QRegularExpressionValidator(boolRegex))
+
+        # Graph event listeners
+        self.__mainWidget.elev.textChanged.connect(self.configChanged)
+        self.__mainWidget.azim.textChanged.connect(self.configChanged)
 
         # Camera event listeners
         self.__mainWidget.focalLength.textChanged.connect(self.configChanged)
@@ -217,6 +231,16 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.resetParameters.clicked.connect(self.resetParameters)
         self.__mainWidget.uploadSaved.clicked.connect(self.uploadSavedParameters)
 
+        # Radio buttons
+        self.radioButtons = QButtonGroup()
+        self.radioButtons.addButton(self.__mainWidget.rawRadio)
+        self.radioButtons.addButton(self.__mainWidget.ellipseRadio)
+        self.radioButtons.addButton(self.__mainWidget.debugRadio)
+        self.radioButtons.addButton(self.__mainWidget.rayRadio)
+        self.__mainWidget.rayRadio.setEnabled(False)
+        self.__mainWidget.ellipseRadio.setChecked(True)
+        self.radioButtons.buttonClicked.connect(self.radioClicked)
+
         # Setup scripts
         self.detector_2d.update_properties(self.detector_2d_config)
         self.previewDetector2d.update_properties(self.detector_2d_config)
@@ -224,10 +248,13 @@ class MainWindow(FramelessMainWindow):
         self.detector_3d = Detector3D(camera=self.camera)
         self.detector_3d.update_properties(self.detector_3d_config)
 
+        # Title bar design
         for button in titleBar.findChildren(QPushButton):
             button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
+
+        # Main window events
         self.__mainWidget.listImages.itemClicked.connect(self.imageClicked)
         self.__mainWidget.startButton.setEnabled(False)
         self.__mainWidget.startButton.clicked.connect(self.startDetection)
@@ -238,13 +265,6 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.rawImage.clicked.connect(self.showRawImage)
         self.__mainWidget.imagePath.setText("Choose image")
         self.__mainWidget.imagePath.setText(self.__mainWidget.imagePath.fontMetrics().elidedText(self.__mainWidget.imagePath.text(), Qt.ElideRight, self.__mainWidget.imagePath.width()))
-        self.radioButtons = QButtonGroup()
-        self.radioButtons.addButton(self.__mainWidget.rawRadio)
-        self.radioButtons.addButton(self.__mainWidget.ellipseRadio)
-        self.radioButtons.addButton(self.__mainWidget.debugRadio)
-        self.radioButtons.addButton(self.__mainWidget.rayRadio)
-        self.__mainWidget.ellipseRadio.setChecked(True)
-        self.radioButtons.buttonClicked.connect(self.radioClicked)
 
     def showHeatmap(self):
         visualizationImage = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.png *.jpeg)")
@@ -285,6 +305,8 @@ class MainWindow(FramelessMainWindow):
         final_perimeter_max = float(self.__mainWidget.finalPerimeterMax.text()) if self.__mainWidget.finalPerimeterMax.text() != "" else None
 
         if self.__mainWidget.focalLength.text() != ""  \
+            and self.__mainWidget.elev.text() != "" \
+            and self.__mainWidget.azim.text() != "" \
             and self.__mainWidget.thresholdSwirski.text() != "" \
             and self.__mainWidget.thresholdKalman.text() != "" \
             and self.__mainWidget.thresholdShortTerm.text() != "" \
@@ -330,6 +352,10 @@ class MainWindow(FramelessMainWindow):
             self.__mainWidget.saveParameters.setEnabled(False)
     
     def setParameters(self):
+        # Graph parameters
+        self.config['elev'] = int(self.__mainWidget.elev.text())
+        self.config['azim'] = int(self.__mainWidget.azim.text())
+
         # Camera parameters
         self.config['focal_length'] = float(self.__mainWidget.focalLength.text())
 
@@ -383,7 +409,14 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.saveParameters.setEnabled(True)
 
     def resetParameters(self):
+        # Camera parameters
         self.__mainWidget.focalLength.setText(str(self.default_config['focal_length']))
+
+        # Graph parameters
+        self.__mainWidget.elev.setText(str(self.default_config['elev']))
+        self.__mainWidget.azim.setText(str(self.default_config['azim']))
+
+        # 2D detector parameters
         self.__mainWidget.intensityRange.setText(str(self.default_config["detector_2d"]['intensity_range']))
         self.__mainWidget.pupilSizeMax.setText(str(self.default_config["detector_2d"]['pupil_size_max']))
         self.__mainWidget.pupilSizeMin.setText(str(self.default_config["detector_2d"]['pupil_size_min']))
@@ -405,6 +438,8 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.finalPerimeterMax.setText(str(self.default_config["detector_2d"]['final_perimeter_ratio_range_max']))
         self.__mainWidget.ellipseSupportMinDist.setText(str(self.default_config["detector_2d"]['ellipse_true_support_min_dist']))
         self.__mainWidget.supportPixelRatio.setText(str(self.default_config["detector_2d"]['support_pixel_ratio_exponent']))
+
+        # 3D detector parameters
         self.__mainWidget.thresholdSwirski.setText(str(self.default_config["detector_3d"]['threshold_swirski']))
         self.__mainWidget.thresholdKalman.setText(str(self.default_config["detector_3d"]['threshold_kalman']))
         self.__mainWidget.thresholdShortTerm.setText(str(self.default_config["detector_3d"]['threshold_short_term']))
@@ -429,7 +464,15 @@ class MainWindow(FramelessMainWindow):
     def uploadSavedParameters(self):
         with open('config/config.json') as json_file:
             self.original_config = json.load(json_file)
+
+        # Camera parameters
         self.__mainWidget.focalLength.setText(str(self.original_config['focal_length']))
+
+        # Graph parameters
+        self.__mainWidget.elev.setText(str(self.original_config['elev']))
+        self.__mainWidget.azim.setText(str(self.original_config['azim']))
+
+        # 2D detector parameters
         self.__mainWidget.coarseDetection.setText(str(bool(self.original_config["detector_2d"]['coarse_detection'])))
         self.__mainWidget.coarseFilterMin.setText(str(self.original_config["detector_2d"]['coarse_filter_min']))
         self.__mainWidget.coarseFilterMax.setText(str(self.original_config["detector_2d"]['coarse_filter_max'])) 
@@ -452,6 +495,7 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.ellipseSupportMinDist.setText(str(self.original_config["detector_2d"]['ellipse_true_support_min_dist']))
         self.__mainWidget.supportPixelRatio.setText(str(self.original_config["detector_2d"]['support_pixel_ratio_exponent']))
 
+        # 3D detector parameters
         self.__mainWidget.thresholdSwirski.setText(str(self.original_config["detector_3d"]['threshold_swirski']))
         self.__mainWidget.thresholdKalman.setText(str(self.original_config["detector_3d"]['threshold_kalman']))
         self.__mainWidget.thresholdShortTerm.setText(str(self.original_config["detector_3d"]['threshold_short_term']))
@@ -492,6 +536,7 @@ class MainWindow(FramelessMainWindow):
             file_list = glob.glob(os.path.join(self.folderPath, "*"))
             self.imageAmount = len(file_list)
             self.__mainWidget.startButton.setEnabled(True)
+            self.__mainWidget.rayRadio.setEnabled(False)
             self.__mainWidget.imageLabel.clear()
             self.__mainWidget.listImages.clear()
             self.__mainWidget.imagePath.setText(self.imageName)
@@ -508,12 +553,14 @@ class MainWindow(FramelessMainWindow):
             self.rawDataFromDetection = {}
             self.__mainWidget.imagePath.setText("Choose image")
             self.__mainWidget.startButton.setEnabled(False)
+            self.__mainWidget.rayRadio.setEnabled(False)
             self.__mainWidget.listImages.clear()
             self.__mainWidget.imageLabel.clear()
 
     def startDetection(self):
         if self.imagePath:
             self.clickedItem = None
+            self.__mainWidget.rayRadio.setEnabled(False)
             if self.detectionRound == 0:
                 self.renderImage()
                 if self.fillImageList == 0:
@@ -523,6 +570,7 @@ class MainWindow(FramelessMainWindow):
             else:
                 self.rawDataFromDetection = {}
                 self.renderImage()
+            self.__mainWidget.rayRadio.setEnabled(True)
 
     def renderImage(self):
         fileName = self.imageName.split("_")
@@ -742,7 +790,9 @@ class MainWindow(FramelessMainWindow):
             ax.plot([x_start, x_end], [y_start, y_end], [z_start, z_end], color='red', linewidth=1)
 
 
-        ax.view_init(elev=10, azim=-60)
+        # TODO: pridať do configu elev a azim ..
+        # TODO: aj normala oka zobraziť
+        ax.view_init(elev=self.config['elev'], azim=self.config['azim'])
         fig.set_size_inches(6.4, 4.8)
         fig.tight_layout()
         fig.canvas.draw()
@@ -908,6 +958,7 @@ class VisualizationWindow(FramelessMainWindow):
         return (1 - t) * a + t * b
 
     def convert_uv_to_px(self, uv_data, width, height):
+        # TODO: tu pozrieť či je 0 - 1
         return (int(uv_data[0] * width), int(uv_data[1] * height))
 
     def convert_to_uv(self, vec, size_x=250, size_y=250, flip_y=True):
@@ -916,6 +967,7 @@ class VisualizationWindow(FramelessMainWindow):
         if flip_y:
             y = 1 - y
         
+        # TODO: vratiť ich aj ked su mimo
         if x < 0 or x > 1 or y < 0 or y > 1:
             return None
         return (x, y)
@@ -1199,15 +1251,12 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 
 # TODO: kalibracia a validacia
-# TODO: transforms lib knižnica
-# TODO: prevod medzi lokal a global coord systemom
 # TODO: neskor pridať dlib na detekciu zrenice .. funguje na zaklade machine learningu
 # TODO: pre kameru pridať velkosť obrazku do configu
 # TODO: dalšiu iteraciu navrhu .. že čo sa zmenilo
 # TODO: prerobiť veci v scanpath aby sa volalo iba to čo je potrebné
-# TODO: obrazky v overleaf dať vedla seba ..
+# TODO: obrazky v overleaf dať vedla seba ale iba tie ktore spolu suvisia
 # TODO: kapitola nema byť prazdna .. doplniť nejaky uvod ..
 # TODO: heatmapa a scanpath .. dať do vlastnej kapitoly a vysvetliť to .. dať to do analyzy
 # TODO: z druhej iteracie navrhu dať .. budeme potrebovať marker ..
 # TODO: možno opisať ako ziskať ppi monitora
-# TODO: save raycast as image and display it
