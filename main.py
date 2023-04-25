@@ -258,6 +258,7 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.listImages.itemClicked.connect(self.imageClicked)
         self.__mainWidget.startButton.setEnabled(False)
         self.__mainWidget.startButton.clicked.connect(self.startDetection)
+        self.__mainWidget.calibrate.clicked.connect(self.openCalibrationWindow)
         self.__mainWidget.reanalyze.clicked.connect(self.reanalyze)
         self.__mainWidget.loadImage.clicked.connect(self.loadImage)
         self.__mainWidget.scanpath.clicked.connect(self.showScanpath)
@@ -265,6 +266,13 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.rawImage.clicked.connect(self.showRawImage)
         self.__mainWidget.imagePath.setText("Choose image")
         self.__mainWidget.imagePath.setText(self.__mainWidget.imagePath.fontMetrics().elidedText(self.__mainWidget.imagePath.text(), Qt.ElideRight, self.__mainWidget.imagePath.width()))
+
+    def openCalibrationWindow(self):
+        calibrationImage = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.png *.jpeg)")
+        if calibrationImage[0] != "":
+            self.calibration = CalibrationWindow(self, calibrationImage[0])
+            self.calibration.show()
+            self.openedWindows.append(self.calibration)
 
     def showHeatmap(self):
         visualizationImage = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.png *.jpeg)")
@@ -1241,6 +1249,55 @@ class VisualizationWindow(FramelessMainWindow):
         data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
         pyplot.close(fig)
         return data
+    
+class CalibrationWindow(FramelessMainWindow):
+    def __init__(self, mainApp, imagePath):
+        super().__init__()
+
+        self.rawData = mainApp.rawDataFromDetection
+
+        self.loader = QUiLoader()
+        self.planeNormal = np.array([0, 1, 0])
+        self.planeCenter = np.array([0, -500, 0])
+        self.planeRot = np.array([0, 0, 180])
+        self.cameraPos = np.array([0, -50, 0])
+        self.cameraRot = np.array([90, 0, 0])
+        self.qimg = None
+        self.color1 = (0, 0, 0)
+        self.color2 = (255, 255, 255) 
+        self.threshold = 1
+
+        self.__mainWidget = QWidget()
+        ui = QFile("ui/calibrationPopupWindow.ui")
+        ui.open(QFile.ReadOnly)
+        self.__mainWidget = self.loader.load(ui)
+        ui.close()
+        self.setWindowTitle('Calibration Window')
+        self.setWindowIcon('public/light.png')
+        self.mainWidget = self.centralWidget()
+        lay = self.mainWidget.layout()
+        lay.addWidget(self.__mainWidget)
+        self.mainWidget.setLayout(lay)
+        self.setCentralWidget(self.mainWidget)
+        self.setGeometry(200, 50, 1024, 636)
+        self.setFixedSize(1024, 636)
+        titleBar = self.getTitleBar()
+        titleBar.setFixedHeight(35)
+        for button in titleBar.findChildren(QPushButton):
+            button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
+        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
+        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
+
+        print(self.rawData)
+
+    def mousePressEvent(self, event):
+        x, y = event.pos().x(), event.pos().y()
+        print(event)
+        
+        if y > 35 and y < 601 and x > 0 and x < 1024:
+            # TODO: click event
+            pass
+
 
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
