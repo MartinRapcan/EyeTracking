@@ -11,7 +11,7 @@ from math import sqrt, atan2, cos, sin
 
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QPixmap, QImage, QRegularExpressionValidator
-from PySide6.QtCore import QFile, QRegularExpression, Qt, QCoreApplication
+from PySide6.QtCore import QFile, QRegularExpression, Qt, QCoreApplication, QObject
 from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QPushButton, QWidget, QButtonGroup, QColorDialog, QVBoxLayout
 from pyqt_frameless_window import FramelessMainWindow
 
@@ -1255,6 +1255,14 @@ class CalibrationWindow(FramelessMainWindow):
         super().__init__()
 
         self.rawData = mainApp.rawDataFromDetection
+        self.image = cv2.imread(imagePath)
+        self.qimg = None
+        self.imageX = None
+        self.imageY = None
+        self.scaleX = None
+        self.scaleY = None
+        self.imageWidth = None
+        self.imageHeight = None
 
         self.loader = QUiLoader()
         self.planeNormal = np.array([0, 1, 0])
@@ -1262,10 +1270,6 @@ class CalibrationWindow(FramelessMainWindow):
         self.planeRot = np.array([0, 0, 180])
         self.cameraPos = np.array([0, -50, 0])
         self.cameraRot = np.array([90, 0, 0])
-        self.qimg = None
-        self.color1 = (0, 0, 0)
-        self.color2 = (255, 255, 255) 
-        self.threshold = 1
 
         self.__mainWidget = QWidget()
         ui = QFile("ui/calibrationPopupWindow.ui")
@@ -1288,15 +1292,52 @@ class CalibrationWindow(FramelessMainWindow):
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
 
-        print(self.rawData)
+        self.displayImage()
+
+    def displayImage(self):
+        image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        h, w, c = image.shape
+        self.qimg = QImage(image.data, w, h, c * w, QImage.Format_RGB888)
+
+        if image.shape[1] > self.__mainWidget.image.width() or image.shape[0] > self.__mainWidget.image.height():
+            scaled = QPixmap.fromImage(self.qimg).scaled(self.__mainWidget.image.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.__mainWidget.image.setPixmap(scaled)
+
+            if image.shape[1] > self.__mainWidget.image.width() and image.shape[0] > self.__mainWidget.image.height():
+                self.scaleX = self.__mainWidget.image.width() / image.shape[1]
+                self.scaleY = self.__mainWidget.image.height() / image.shape[0]
+
+            elif image.shape[1] > self.__mainWidget.image.width():
+                self.scaleX = self.__mainWidget.image.width() / image.shape[1]
+                self.scaleY = self.scaleX
+
+            elif image.shape[0] > self.__mainWidget.image.height():
+                self.scaleY = self.__mainWidget.image.height() / image.shape[0]
+                self.scaleX = self.scaleY 
+
+            self.imageX = (self.__mainWidget.image.width() - scaled.width()) / 2
+            self.imageY = (self.__mainWidget.image.height() - scaled.height()) / 2
+            self.imageHeight = scaled.height()
+            self.imageWidth = scaled.width()
+        else:
+            self.imageX = (self.__mainWidget.image.width() - image.shape[1]) / 2
+            self.imageY = (self.__mainWidget.image.height() - image.shape[0]) / 2
+            self.scaleX = 1
+            self.scaleY = 1
+            self.imageHeight = image.shape[0]
+            self.imageWidth = image.shape[1]
+            self.__mainWidget.image.setPixmap(QPixmap.fromImage(self.qimg))
+            self.__mainWidget.image.setAlignment(Qt.AlignCenter)
+
 
     def mousePressEvent(self, event):
         x, y = event.pos().x(), event.pos().y()
-        print(event)
         
-        if y > 35 and y < 601 and x > 0 and x < 1024:
-            # TODO: click event
-            pass
+        if y > 35 + self.imageY and y < 35 + self.imageY + self.imageHeight and x >= 0 + self.imageX and x <= self.imageX + self.imageWidth:
+            print("Clicked on image")
+            x = (x - self.imageX) / self.scaleX
+            y = (y - self.imageY - 35) / self.scaleY
+            print(x, y)
 
 
 if __name__ == "__main__":
