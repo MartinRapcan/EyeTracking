@@ -75,6 +75,115 @@ QPushButton:disabled {
     <string>Test</string>
    </property>
   </widget>
+  <widget class="QLineEdit" name="radiusInput">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>576</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {
+border: 1px solid #FFE81F;
+color: white;
+}</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="radiusButton">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>576</y>
+     <width>100</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+background-color: #FFE81F;
+border: none;
+font-size: 11px;
+color: black;
+font-weight: 600;
+}
+
+QPushButton:hover {
+background-color: #ccba18;
+
+}
+
+QPushButton:pressed {
+background-color: #ccba18;
+}
+
+QPushButton:disabled {
+    background-color:  #87814c;
+}</string>
+   </property>
+   <property name="text">
+    <string>Apply Radius</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="colorInactive">
+   <property name="geometry">
+    <rect>
+     <x>856</x>
+     <y>576</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	border: 5px solid #FFE81F;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="colorActive">
+   <property name="geometry">
+    <rect>
+     <x>890</x>
+     <y>576</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+	border: 5px solid #FFE81F;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>576</y>
+     <width>431</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 18px;
+font-weight: bold;
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

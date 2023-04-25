@@ -1268,7 +1268,8 @@ class CalibrationWindow(FramelessMainWindow):
         self.imageHeight = None
         self.button = None
         self.radius = 20
-        self.color = (0, 0, 0)
+        self.colorInactive = (0, 0, 0)
+        self.colorActive = (0, 0, 255)
         self.circleRadius = 10
         self.repeat = False
         self.uv_coords = []
@@ -1308,9 +1309,40 @@ class CalibrationWindow(FramelessMainWindow):
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
 
+        # from 1 to 100
+        radiusRegex = QRegularExpression("^[1-9][0-9]?$|^100$")
+        self.__mainWidget.radiusInput.setValidator(QRegularExpressionValidator(radiusRegex))
+        self.__mainWidget.radiusInput.setText(str(self.radius))
+        self.__mainWidget.radiusInput.textChanged.connect(self.setRadius)
+
+        self.__mainWidget.colorActive.clicked.connect(self.setActiveColor)
+        self.__mainWidget.colorInactive.clicked.connect(self.setInactiveColor)
+        self.__mainWidget.colorActive.setStyleSheet(f'QPushButton {{background-color: #FF0000; border: 5px solid #FFE81F;}}')
+        self.__mainWidget.colorInactive.setStyleSheet(f'QPushButton {{background-color: #000000; border: 5px solid #FFE81F;}}')
+        self.__mainWidget.label.setText(f'Image size in pixels: {self.image.shape[1]}x{self.image.shape[0]}')
+
         self.rawToPoint()
         self.drawPoints()
-        self.displayImage()
+
+    def setRadius(self):
+        if self.__mainWidget.radiusInput.text() != '':
+            self.radius = int(self.__mainWidget.radiusInput.text())
+
+    def setActiveColor(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            r, g, b, _ = color.getRgb()
+            self.__mainWidget.colorActive.setStyleSheet(f'QPushButton {{background-color: {color.name()}; border: 5px solid #FFE81F;}}')
+            self.colorActive = (b, g, r)
+            self.drawPoints()
+
+    def setInactiveColor(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            r, g, b, _ = color.getRgb()
+            self.__mainWidget.colorInactive.setStyleSheet(f'QPushButton {{background-color: {color.name()}; border: 5px solid #FFE81F;}}')
+            self.colorInactive = (b, g, r)
+            self.drawPoints()
 
     def dir_vector(self, vec1, vec2):
         return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
@@ -1393,15 +1425,11 @@ class CalibrationWindow(FramelessMainWindow):
                 self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], self.image.shape[1], self.image.shape[0])
             self.repeat = True
 
-        for i in range(0, len(self.uv_coords)):
-            cv2.circle(self.image, self.uv_coords[i], self.circleRadius, self.color, -1)
-
-    def reDrawPoints(self):
         for i in self.uv_coords:
             if i in self.pointsInRadius:
-                cv2.circle(self.image, i, self.circleRadius, (255, 0, 0), -1)
+                cv2.circle(self.image, i, self.circleRadius, self.colorActive, -1)
             else:
-                cv2.circle(self.image, i, self.circleRadius, self.color, -1)
+                cv2.circle(self.image, i, self.circleRadius, self.colorInactive, -1)
 
         self.displayImage()
 
@@ -1440,7 +1468,6 @@ class CalibrationWindow(FramelessMainWindow):
             self.__mainWidget.image.setPixmap(QPixmap.fromImage(self.qimg))
             self.__mainWidget.image.setAlignment(Qt.AlignCenter)
 
-    # check if point is in radius of circle
     def distance(self, p1, p2):
         return sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
@@ -1461,7 +1488,7 @@ class CalibrationWindow(FramelessMainWindow):
                             if i in self.pointsInRadius:
                                 self.pointsInRadius.remove(i)
 
-                self.reDrawPoints()
+                self.drawPoints()
 
 
 if __name__ == "__main__":
