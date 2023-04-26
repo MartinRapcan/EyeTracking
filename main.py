@@ -1362,7 +1362,7 @@ class CalibrationWindow(FramelessMainWindow):
         for i in self.mappedPoints:
             print("Point: ", i)
             for j in self.mappedPoints[i]:
-                print(self.rawData[j[i]])
+                print(self.rawData[j[1]])
 
             print("\n\n")
 
