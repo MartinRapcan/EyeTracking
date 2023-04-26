@@ -1280,6 +1280,7 @@ class CalibrationWindow(FramelessMainWindow):
         self.radius = 20
         self.colorInactive = (0, 0, 0)
         self.colorActive = (0, 0, 255)
+        self.colorMapped = (0, 255, 255)
         self.circleRadius = 10
         self.repeat = False
         self.uv_coords = []
@@ -1290,6 +1291,10 @@ class CalibrationWindow(FramelessMainWindow):
         self.cameraRot = np.array([90, 0, 0])
         self.dir_vectors = {}
         self.pointsInRadius = []
+        self.mappedPoints = {}
+        self.mappedPointsToDraw = []
+        self.calPointIndex = 1
+        self.orderText = {1: "st", 2: "nd", 3: "rd", 4: "th", 5: "th"}
 
         self.loader = QUiLoader()
         self.planeNormal = np.array([0, 1, 0])
@@ -1319,7 +1324,6 @@ class CalibrationWindow(FramelessMainWindow):
         titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
         titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
 
-        # from 1 to 100
         radiusRegex = QRegularExpression("^[1-9][0-9]?$|^100$")
         self.__mainWidget.radiusInput.setValidator(QRegularExpressionValidator(radiusRegex))
         self.__mainWidget.radiusInput.setText(str(self.radius))
@@ -1331,8 +1335,36 @@ class CalibrationWindow(FramelessMainWindow):
         self.__mainWidget.colorInactive.setStyleSheet(f'QPushButton {{background-color: #000000; border: 5px solid #FFE81F;}}')
         self.__mainWidget.label.setText(f'Image size in pixels: {self.image.shape[1]}x{self.image.shape[0]}')
 
+        self.__mainWidget.save.clicked.connect(self.saveData)
+        self.__mainWidget.save.setEnabled(False)
+        self.__mainWidget.save.setText(f"Save for {self.calPointIndex}{self.orderText[self.calPointIndex]} point")
+
         self.rawToPoint()
         self.drawPoints()
+
+    def saveData(self):
+        if len(self.pointsInRadius) == 0 and self.calPointIndex != 6:
+            return
+        
+        if self.calPointIndex < 6:
+            self.mappedPoints[self.calPointIndex] = self.pointsInRadius
+            self.mappedPointsToDraw = [*self.mappedPointsToDraw, *self.pointsInRadius]
+            self.pointsInRadius = []
+            self.drawPoints()
+            self.calPointIndex += 1
+            self.__mainWidget.save.setEnabled(False if self.calPointIndex != 6 else True)
+            self.__mainWidget.save.setText(f"Save for {self.calPointIndex}{self.orderText[self.calPointIndex]} point" if self.calPointIndex != 6 else "Calibrate")
+
+        else:
+            self.calibrate()
+
+    def calibrate(self):
+        for i in self.mappedPoints:
+            print("Point: ", i)
+            for j in self.mappedPoints[i]:
+                print(self.rawData[j[i]])
+
+            print("\n\n")
 
     def setRadius(self):
         if self.__mainWidget.radiusInput.text() != '':
@@ -1427,19 +1459,42 @@ class CalibrationWindow(FramelessMainWindow):
                 #planeIntersection[0] = -planeIntersection[0] # otočena obrazovka
                 result = self.convert_to_uv(planeIntersection)
                 if result:
-                    self.uv_coords.append(result)
+                    self.uv_coords.append((result, i))
 
     def drawPoints(self):
         if not self.repeat:
             for i in range(0, len(self.uv_coords)):
-                self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], self.image.shape[1], self.image.shape[0])
+                self.uv_coords[i] = (self.convert_uv_to_px(self.uv_coords[i][0], self.image.shape[1], self.image.shape[0]), self.uv_coords[i][1])
             self.repeat = True
 
         for i in self.uv_coords:
-            if i in self.pointsInRadius:
-                cv2.circle(self.image, i, self.circleRadius, self.colorActive, -1)
+            if True in map(lambda x: x[1] == i[1], self.pointsInRadius) and len(self.pointsInRadius):
+                cv2.circle(self.image, i[0], self.circleRadius, self.colorActive, -1)
+
+            elif True in map(lambda x: x[1] == i[1], self.mappedPointsToDraw) and len(self.mappedPointsToDraw):
+                cv2.circle(self.image, i[0], self.circleRadius, self.colorMapped, -1)
             else:
-                cv2.circle(self.image, i, self.circleRadius, self.colorInactive, -1)
+                cv2.circle(self.image, i[0], self.circleRadius, self.colorInactive, -1)
+
+        for i in self.mappedPoints:
+            x_center = 0
+            y_center = 0
+            radius = 0
+            for j in self.mappedPoints[i]:
+                x_center += j[0][0]
+                y_center += j[0][1]
+
+            x_center = int(x_center // len(self.mappedPoints[i]))
+            y_center = int(y_center // len(self.mappedPoints[i]))
+
+            for j in self.mappedPoints[i]:
+                radius = max(radius, int(np.sqrt((j[0][0] - x_center) ** 2 + (j[0][1] - y_center) ** 2)))
+
+            cv2.circle(self.image, (x_center, y_center), radius, self.colorMapped, 2)
+            text_size, _ = cv2.getTextSize(str(i), cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
+            text_origin = (int(x_center - text_size[0] / 2), int(y_center + text_size[1] / 2))
+
+            cv2.putText(self.image, str(i), (text_origin), cv2.FONT_HERSHEY_SIMPLEX, 2, self.colorMapped, 2)
 
         self.displayImage()
 
@@ -1484,20 +1539,26 @@ class CalibrationWindow(FramelessMainWindow):
     def mousePressEvent(self, event):
         x, y = event.pos().x(), event.pos().y()
 
-        if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
+        if (event.button() == Qt.LeftButton or event.button() == Qt.RightButton) and self.calPointIndex < 6:
             self.button = 'left' if event.button() == Qt.LeftButton else 'right'
             if y > 35 + self.imageY and y < 35 + self.imageY + self.imageHeight and x >= 0 + self.imageX and x <= self.imageX + self.imageWidth:
                 x = (x - self.imageX) / self.scaleX
                 y = (y - self.imageY - 35) / self.scaleY
                 for i in self.uv_coords:
-                    if self.distance(i, (x, y)) <= self.radius:
+                    if self.distance(i[0], (x, y)) <= self.radius:
                         if self.button == 'left':
-                            if not i in self.pointsInRadius:
+                            if not True in map(lambda x: x[1] == i[1], self.pointsInRadius) \
+                                and not True in map(lambda x: x[1] == i[1], self.mappedPointsToDraw):
                                 self.pointsInRadius.append(i)
                         elif self.button == 'right':
-                            if i in self.pointsInRadius:
+                            if True in map(lambda x: x[1] == i[1], self.pointsInRadius) \
+                            and not True in map(lambda x: x[1] == i[1], self.mappedPointsToDraw):
                                 self.pointsInRadius.remove(i)
 
+                if len(self.pointsInRadius) > 0:
+                    self.__mainWidget.save.setEnabled(True)
+                else:
+                    self.__mainWidget.save.setEnabled(False)
                 self.drawPoints()
 
 

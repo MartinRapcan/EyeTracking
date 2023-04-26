@@ -40,7 +40,7 @@ background-color: #171923;
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="test">
+  <widget class="QPushButton" name="save">
    <property name="geometry">
     <rect>
      <x>924</x>
@@ -72,7 +72,7 @@ QPushButton:disabled {
 }</string>
    </property>
    <property name="text">
-    <string>Test</string>
+    <string>Save</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="radiusInput">
