@@ -1269,6 +1269,7 @@ class CalibrationWindow(FramelessMainWindow):
 
         self.rawData = mainApp.rawDataFromDetection
         self.image = cv2.imread(imagePath)
+        self.imageCopy = None
         self.qimg = None
         self.imageX = None
         self.imageY = None
@@ -1295,6 +1296,8 @@ class CalibrationWindow(FramelessMainWindow):
         self.mappedPointsToDraw = []
         self.calPointIndex = 1
         self.orderText = {1: "st", 2: "nd", 3: "rd", 4: "th", 5: "th"}
+        self.circleCenter = None
+        self.circleActive = False
 
         self.loader = QUiLoader()
         self.planeNormal = np.array([0, 1, 0])
@@ -1340,7 +1343,7 @@ class CalibrationWindow(FramelessMainWindow):
         self.__mainWidget.save.setText(f"Save for {self.calPointIndex}{self.orderText[self.calPointIndex]} point")
 
         self.rawToPoint()
-        self.drawPoints()
+        self.renderImage()
 
     def saveData(self):
         if len(self.pointsInRadius) == 0 and self.calPointIndex != 6:
@@ -1350,7 +1353,9 @@ class CalibrationWindow(FramelessMainWindow):
             self.mappedPoints[self.calPointIndex] = self.pointsInRadius
             self.mappedPointsToDraw = [*self.mappedPointsToDraw, *self.pointsInRadius]
             self.pointsInRadius = []
-            self.drawPoints()
+            self.circleActive = False
+            self.image = self.imageCopy.copy()
+            self.displayImage(self.image)
             self.calPointIndex += 1
             self.__mainWidget.save.setEnabled(False if self.calPointIndex != 6 else True)
             self.__mainWidget.save.setText(f"Save for {self.calPointIndex}{self.orderText[self.calPointIndex]} point" if self.calPointIndex != 6 else "Calibrate")
@@ -1461,45 +1466,30 @@ class CalibrationWindow(FramelessMainWindow):
                 if result:
                     self.uv_coords.append((result, i))
 
-    def drawPoints(self):
-        if not self.repeat:
-            for i in range(0, len(self.uv_coords)):
-                self.uv_coords[i] = (self.convert_uv_to_px(self.uv_coords[i][0], self.image.shape[1], self.image.shape[0]), self.uv_coords[i][1])
-            self.repeat = True
+    def renderImage(self):
+        for i in range(0, len(self.uv_coords)):
+            self.uv_coords[i] = (self.convert_uv_to_px(self.uv_coords[i][0], self.image.shape[1], self.image.shape[0]), self.uv_coords[i][1])
 
         for i in self.uv_coords:
-            if True in map(lambda x: x[1] == i[1], self.pointsInRadius) and len(self.pointsInRadius):
-                cv2.circle(self.image, i[0], self.circleRadius, self.colorActive, -1)
+            cv2.circle(self.image, i[0], 1, (0, 0, 0), -1)
 
-            elif True in map(lambda x: x[1] == i[1], self.mappedPointsToDraw) and len(self.mappedPointsToDraw):
-                cv2.circle(self.image, i[0], self.circleRadius, self.colorMapped, -1)
-            else:
-                cv2.circle(self.image, i[0], self.circleRadius, self.colorInactive, -1)
+        self.displayImage(self.image)
 
-        for i in self.mappedPoints:
-            x_center = 0
-            y_center = 0
-            radius = 0
-            for j in self.mappedPoints[i]:
-                x_center += j[0][0]
-                y_center += j[0][1]
+    def drawCircle(self):
+        if not self.circleActive and self.circleCenter:
+            self.imageCopy = self.image.copy()
+            cv2.circle(self.imageCopy, self.circleCenter, self.radius, (128, 250, 200), -1)
+            self.circleActive = True
 
-            x_center = int(x_center // len(self.mappedPoints[i]))
-            y_center = int(y_center // len(self.mappedPoints[i]))
+            self.displayImage(self.imageCopy)
 
-            for j in self.mappedPoints[i]:
-                radius = max(radius, int(np.sqrt((j[0][0] - x_center) ** 2 + (j[0][1] - y_center) ** 2)))
+        elif self.circleActive and self.circleCenter == "reset":
+            self.imageCopy = self.image.copy()
+            self.displayImage(self.imageCopy)
+            self.circleActive = False
 
-            cv2.circle(self.image, (x_center, y_center), radius, self.colorMapped, 2)
-            text_size, _ = cv2.getTextSize(str(i), cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
-            text_origin = (int(x_center - text_size[0] / 2), int(y_center + text_size[1] / 2))
-
-            cv2.putText(self.image, str(i), (text_origin), cv2.FONT_HERSHEY_SIMPLEX, 2, self.colorMapped, 2)
-
-        self.displayImage()
-
-    def displayImage(self):
-        image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+    def displayImage(self, img=None):
+        image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         h, w, c = image.shape
         self.qimg = QImage(image.data, w, h, c * w, QImage.Format_RGB888)
 
@@ -1546,20 +1536,22 @@ class CalibrationWindow(FramelessMainWindow):
                 y = (y - self.imageY - 35) / self.scaleY
                 for i in self.uv_coords:
                     if self.distance(i[0], (x, y)) <= self.radius:
-                        if self.button == 'left':
+                        if self.button == 'left' and not self.circleActive:
                             if not True in map(lambda x: x[1] == i[1], self.pointsInRadius) \
                                 and not True in map(lambda x: x[1] == i[1], self.mappedPointsToDraw):
-                                self.pointsInRadius.append(i)
-                        elif self.button == 'right':
-                            if True in map(lambda x: x[1] == i[1], self.pointsInRadius) \
-                            and not True in map(lambda x: x[1] == i[1], self.mappedPointsToDraw):
-                                self.pointsInRadius.remove(i)
+                                self.pointsInRadius.append(i)               
+
+                if self.button == 'left' and not self.circleActive:
+                    self.circleCenter = (int(x), int(y))
+                elif self.button == 'right' and self.circleActive:
+                    self.circleCenter = "reset"
+                    self.pointsInRadius = []
 
                 if len(self.pointsInRadius) > 0:
                     self.__mainWidget.save.setEnabled(True)
                 else:
                     self.__mainWidget.save.setEnabled(False)
-                self.drawPoints()
+                self.drawCircle()
 
 
 if __name__ == "__main__":
