@@ -1572,3 +1572,5 @@ if __name__ == "__main__":
 # TODO: heatmapa a scanpath .. dať do vlastnej kapitoly a vysvetliť to .. dať to do analyzy
 # TODO: z druhej iteracie navrhu dať .. budeme potrebovať marker ..
 # TODO: možno opisať ako ziskať ppi monitora
+
+# TODO: tie uv ktore su mimo 0 a 1 ... vratiť asi len pri hlavnom okne .. tam mame 3D debug kde to bude vidieť
