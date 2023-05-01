@@ -1,7 +1,7 @@
 import numpy as np
 
-def lookAt(eye, target, up):
-    forward = target - eye
+def lookAt(camera, target, up):
+    forward = target - camera
     forward = forward / np.linalg.norm(forward)
 
     right = np.cross(forward, up)
@@ -23,16 +23,16 @@ def lookAt(eye, target, up):
     result[2][2] = -forward[2]
 
     translation = np.identity(4)
-    translation[0][3] = -eye[0]
-    translation[1][3] = -eye[1]
-    translation[2][3] = -eye[2]
+    translation[0][3] = -camera[0]
+    translation[1][3] = -camera[1]
+    translation[2][3] = -camera[2]
 
     result = np.matmul(result, translation)
     return result
 
 
 camera_up = np.array([0, 0, 1]) # Camera's up vector in global eye coordinates
-cam_pos = np.array([-50, -50, -10])  # Camera's position in global eye coordinates
+cam_pos = np.array([0, -50, 0])  # Camera's position in global eye coordinates
 eye_pos = np.array([0, 0, 0]) # Target's position in global eye coordinates
 
 lookAt_matrix = lookAt(cam_pos, eye_pos, camera_up)

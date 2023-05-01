@@ -650,8 +650,8 @@ class MainWindow(FramelessMainWindow):
         elif self.imageFlag == "3D" and self.clickedItem and self.rawDataFromDetection:
             planeNormal = np.array([0, 1, 0])
             planeCenter = np.array([0, -500, 0])
-            cameraPos = np.array([0, -50, 0])
-            cameraRot = np.array([90, 0, 0])
+            cameraPos = np.array([20, -50, -10]) # 0, -50, 0
+            cameraRot = np.array([90, 0, 0]) # 90, 0, 0
             index = self.__mainWidget.listImages.row(self.clickedItem)
             data = self.rawDataFromDetection[index]
             dir_vector = {"sphere": np.array(self.transfer_vector(data["sphere"]["center"], 
@@ -665,8 +665,13 @@ class MainWindow(FramelessMainWindow):
             if (intersectionTime > 0.0):
                 planeIntersection = self.getPoint([rayOrigin, rayDirection], intersectionTime)
 
-            cameraNormal = self.transfer_vector(np.array([0, 1, 0]), cameraPos, cameraRot)
-            print(cameraNormal)
+            # TODO: finish this
+            camera_up = np.array([0, 0, 1]) # Camera's up vector in global eye coordinates
+            cam_pos = np.array([20, -50, -10])  # Camera's position in global eye coordinates
+            eye_pos = np.array([0, 0, 0]) # Target's position in global eye coordinates
+
+            cameraRotInEulers = self.lookAt(cam_pos, eye_pos, camera_up)
+            cameraNormal = self.transfer_vector(np.array([0, 1, 0]), cameraPos, cameraRotInEulers)
             image = cv2.cvtColor(self.visualizeRaycast([planeIntersection if planeIntersection.all() else (0, 0, 0)], 
                                                        cameraPos, (0, 0, 0), cameraNormal), cv2.COLOR_BGR2RGB)
             
@@ -703,6 +708,48 @@ class MainWindow(FramelessMainWindow):
 
     def dir_vector(self, vec1, vec2):
         return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
+
+    def lookAt(self, camera, target, up):
+        forward = target - camera
+        forward = forward / np.linalg.norm(forward)
+
+        right = np.cross(forward, up)
+        right = right / np.linalg.norm(right)
+
+        new_up = np.cross(right, forward)
+
+        result = np.identity(4)
+        result[0][0] = right[0]
+        result[0][1] = right[1]
+        result[0][2] = right[2]
+
+        result[1][0] = new_up[0]
+        result[1][1] = new_up[1]
+        result[1][2] = new_up[2]
+
+        result[2][0] = -forward[0]
+        result[2][1] = -forward[1]
+        result[2][2] = -forward[2]
+
+        translation = np.identity(4)
+        translation[0][3] = -camera[0]
+        translation[1][3] = -camera[1]
+        translation[2][3] = -camera[2]
+
+        lookAt_matrix = np.matmul(result, translation)
+        # Extract the rotation submatrix from the look-at matrix
+        rot_matrix = lookAt_matrix[:3, :3]
+        print(lookAt_matrix)
+        # Convert the rotation to Euler angles using the zxy convention
+        theta_z = np.arctan2(-rot_matrix[0, 1], rot_matrix[0, 0])
+        theta_x = np.arctan2(-rot_matrix[1, 2], rot_matrix[2, 2])
+        theta_y = np.arcsin(rot_matrix[0, 2])
+
+        # Convert the angles to degrees and print the result
+        euler_angles = np.array([theta_x, theta_y, theta_z]) * 180 / np.pi
+
+        return euler_angles
+
 
     def transfer_vector(self, vec, position, rotation):
         return vec @ self.eulerToRot(rotation) + position
