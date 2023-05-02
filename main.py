@@ -25,8 +25,132 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection, Text3D
 use('Agg')
 
 
-class MainWindow(FramelessMainWindow):
+class GlobalSharedClass():
     def __init__(self):
+        # UI Loader
+        self.loader = QUiLoader()
+
+        # Constants
+        self.planeNormal = np.array([0, 1, 0])
+        self.planeCenter = np.array([0, -500, 0])
+        self.planeRot = np.array([0, 0, 180])
+        self.cameraPos = np.array([0, -50, 0])
+        self.cameraRot = np.array([90, 0, 0])
+
+        # Validators
+        self.radiusRegex = QRegularExpression("^[1-9][0-9]?$|^100$")
+        self.floatingRegex = QRegularExpression("^(0|[1-9]\\d*)(\\.\\d+)?$")
+        self.integerRegex = QRegularExpression("^0|[1-9]\\d*$")
+        self.boolRegex = QRegularExpression("^True|False$")
+        self.detectorModeRegex = QRegularExpression("^blocking|asynchronous$")
+        self.graphParamRegex = QRegularExpression("^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-9][0-9]|3[0-5][0-9]|360)$")
+        self.thresholdRegex = QRegularExpression("^(1?\d{1,2}|2[0-4]\d|25[0-5])$")
+
+    def dir_vector(self, vec1, vec2):
+        return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
+
+    def lookAt(self, camera, target, up):
+        forward = target - camera
+        forward = forward / np.linalg.norm(forward)
+
+        right = np.cross(forward, up)
+        right = right / np.linalg.norm(right)
+
+        new_up = np.cross(right, forward)
+
+        result = np.identity(4)
+        result[0][0] = right[0]
+        result[0][1] = right[1]
+        result[0][2] = right[2]
+
+        result[1][0] = new_up[0]
+        result[1][1] = new_up[1]
+        result[1][2] = new_up[2]
+
+        result[2][0] = -forward[0]
+        result[2][1] = -forward[1]
+        result[2][2] = -forward[2]
+
+        translation = np.identity(4)
+        translation[0][3] = -camera[0]
+        translation[1][3] = -camera[1]
+        translation[2][3] = -camera[2]
+
+        lookAt_matrix = np.matmul(result, translation)
+        # Extract the rotation submatrix from the look-at matrix
+        rot_matrix = lookAt_matrix[:3, :3]
+        
+        # Convert the rotation to Euler angles using the zxy convention
+        theta_z = np.arctan2(-rot_matrix[0, 1], rot_matrix[0, 0])
+        theta_x = np.arctan2(-rot_matrix[1, 2], rot_matrix[2, 2])
+        theta_y = np.arcsin(rot_matrix[0, 2])
+
+        # Convert the angles to degrees and print the result
+        euler_angles = np.array([theta_x, theta_y, theta_z]) * 180 / np.pi
+
+        return euler_angles
+
+
+    def transfer_vector(self, vec, position, rotation):
+        return vec @ self.eulerToRot(rotation) + position
+
+    def eulerToRot(self, theta, degrees=True):
+        r = Rotation.from_euler("zxy", (theta[2], theta[0], theta[1]), degrees)
+        return r.as_matrix()
+
+    def intersectPlane(self, n, p0, l0, l):
+        denom = self.matmul(-n, l)
+        if (denom > sys.float_info.min):
+            p0l0 = p0 - l0
+            t = self.matmul(p0l0, -n) / denom
+            return t
+        return -1.0
+        
+    def matmul(self, v1, v2, pad=False, padBy=1.0):
+        if(pad is True):
+            return np.matmul(v1, np.append(v2, padBy))[:-1]
+        return np.matmul(v1, v2)
+        
+    def getPoint(self, ray, distance):
+        return ray[0] + ray[1] * distance
+
+    def normalize(self, v):
+        return v / self.magnitude(v)
+        
+    def magnitude(self, v):
+        return np.sqrt(self.sqrMagnitude(v))
+            
+    def sqrMagnitude(self, v):
+        return self.matmul(v, v)
+    
+    def lerp(self, a, b, t):
+        return (1 - t) * a + t * b
+
+    def convert_uv_to_px(self, uv_data, width, height):
+        # TODO: tu pozrieť či je 0 - 1, pridať parameter ktory to bude checkovat alebo ignorovat
+        return (int(uv_data[0] * width), int(uv_data[1] * height))
+
+    def convert_to_uv(self, vec, size_x=250, size_y=250, flip_y=True):
+        x = (vec[0] + size_x / 2) / size_x
+        y = (vec[2] + size_y / 2) / size_y
+        if flip_y:
+            y = 1 - y
+        
+        # TODO: vratiť ich aj ked su mimo
+        if x < 0 or x > 1 or y < 0 or y > 1:
+            return None
+        return (x, y)
+    
+    def setupTitleBar(self, outerClass):
+        outerClass.getTitleBar().setFixedHeight(35)
+        for button in outerClass.getTitleBar().findChildren(QPushButton):
+            button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
+        outerClass.getTitleBar().findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
+        outerClass.getTitleBar().findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
+
+class MainWindow(FramelessMainWindow, GlobalSharedClass):
+    def __init__(self):
+        GlobalSharedClass.__init__(self)
         super().__init__()
 
         self.detector_2d = Detector2D()
@@ -36,7 +160,6 @@ class MainWindow(FramelessMainWindow):
         self.images = {}
         self.imageB = None
         self.angle = 0
-        self.loader = QUiLoader()
         self.imagePath = None
         self.imageName = None
         self.folderPath = None
@@ -68,8 +191,6 @@ class MainWindow(FramelessMainWindow):
         self.setCentralWidget(self.mainWidget)
         self.setGeometry(200, 50, 1100, 735)
         self.setFixedSize(1100, 735)
-        titleBar = self.getTitleBar()
-        titleBar.setFixedHeight(35)
         
         with open('config/config.json') as json_file:
             self.config = json.load(json_file)
@@ -129,57 +250,49 @@ class MainWindow(FramelessMainWindow):
         self.__mainWidget.modelWarmupDuration.setText(str(self.config["detector_3d"]['model_warmup_duration']))
         self.__mainWidget.calculateRmsResidual.setText(str(bool(self.config["detector_3d"]['calculate_rms_residual'])))
 
-        # Validators
-        floatingRegex = QRegularExpression("^(0|[1-9]\\d*)(\\.\\d+)?$")
-        integerRegex = QRegularExpression("^0|[1-9]\\d*$")
-        boolRegex = QRegularExpression("^True|False$")
-        detectorModeRegex = QRegularExpression("^blocking|asynchronous$")
-        # from 0 to 360
-        graphParamRegex = QRegularExpression("^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-9][0-9]|3[0-5][0-9]|360)$")
-
         # Graph validation
-        self.__mainWidget.elev.setValidator(QRegularExpressionValidator(graphParamRegex))
-        self.__mainWidget.azim.setValidator(QRegularExpressionValidator(graphParamRegex))
+        self.__mainWidget.elev.setValidator(QRegularExpressionValidator(self.graphParamRegex))
+        self.__mainWidget.azim.setValidator(QRegularExpressionValidator(self.graphParamRegex))
 
         # Camera validation
-        self.__mainWidget.focalLength.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__mainWidget.focalLength.setValidator(QRegularExpressionValidator(self.floatingRegex))
         
         # Detector 2D validation
-        self.__mainWidget.coarseDetection.setValidator(QRegularExpressionValidator(boolRegex))
-        self.__mainWidget.coarseFilterMin.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.coarseFilterMax.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.intensityRange.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.blurSize.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.cannyTreshold.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.cannyRation.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.cannyAperture.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.pupilSizeMax.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.pupilSizeMin.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.strongPerimeterMin.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.strongPerimeterMax.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.strongAreaMin.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.strongAreaMax.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.contourSizeMin.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.ellipseRoudnessRatio.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.initialEllipseTreshhold.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.finalPerimeterMin.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.finalPerimeterMax.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.ellipseSupportMinDist.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.supportPixelRatio.setValidator(QRegularExpressionValidator(floatingRegex))
+        self.__mainWidget.coarseDetection.setValidator(QRegularExpressionValidator(self.boolRegex))
+        self.__mainWidget.coarseFilterMin.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.coarseFilterMax.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.intensityRange.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.blurSize.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.cannyTreshold.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.cannyRation.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.cannyAperture.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.pupilSizeMax.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.pupilSizeMin.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.strongPerimeterMin.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.strongPerimeterMax.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.strongAreaMin.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.strongAreaMax.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.contourSizeMin.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.ellipseRoudnessRatio.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.initialEllipseTreshhold.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.finalPerimeterMin.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.finalPerimeterMax.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.ellipseSupportMinDist.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.supportPixelRatio.setValidator(QRegularExpressionValidator(self.floatingRegex))
 
         # Detector 3D validation
-        self.__mainWidget.thresholdSwirski.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.thresholdKalman.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.thresholdShortTerm.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.thresholdLongTerm.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.longTermBufferSize.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.longTermForgetTime.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.longTermForgetObservations.setValidator(QRegularExpressionValidator(integerRegex))
-        self.__mainWidget.longTermMode.setValidator(QRegularExpressionValidator(detectorModeRegex))
-        self.__mainWidget.modelUpdateIntervalLongTerm.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.modelUpdateIntervalUltLongTerm.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.modelWarmupDuration.setValidator(QRegularExpressionValidator(floatingRegex))
-        self.__mainWidget.calculateRmsResidual.setValidator(QRegularExpressionValidator(boolRegex))
+        self.__mainWidget.thresholdSwirski.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.thresholdKalman.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.thresholdShortTerm.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.thresholdLongTerm.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.longTermBufferSize.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.longTermForgetTime.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.longTermForgetObservations.setValidator(QRegularExpressionValidator(self.integerRegex))
+        self.__mainWidget.longTermMode.setValidator(QRegularExpressionValidator(self.detectorModeRegex))
+        self.__mainWidget.modelUpdateIntervalLongTerm.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.modelUpdateIntervalUltLongTerm.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.modelWarmupDuration.setValidator(QRegularExpressionValidator(self.floatingRegex))
+        self.__mainWidget.calculateRmsResidual.setValidator(QRegularExpressionValidator(self.boolRegex))
 
         # Graph event listeners
         self.__mainWidget.elev.textChanged.connect(self.configChanged)
@@ -249,10 +362,7 @@ class MainWindow(FramelessMainWindow):
         self.detector_3d.update_properties(self.detector_3d_config)
 
         # Title bar design
-        for button in titleBar.findChildren(QPushButton):
-            button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
-        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
-        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
+        self.setupTitleBar(self)
 
         # Main window events
         self.__mainWidget.listImages.itemClicked.connect(self.imageClicked)
@@ -648,32 +758,28 @@ class MainWindow(FramelessMainWindow):
         # TODO: zistiť či nebeži cyklus .. pretože data sa premažu ale v liste obrazky ostanu
         # TODO: nastane index error ked chceli 3D debug
         elif self.imageFlag == "3D" and self.clickedItem and self.rawDataFromDetection:
-            planeNormal = np.array([0, 1, 0])
-            planeCenter = np.array([0, -500, 0])
-            cameraPos = np.array([20, -50, -10]) # 0, -50, 0
-            cameraRot = np.array([90, 0, 0]) # 90, 0, 0
             index = self.__mainWidget.listImages.row(self.clickedItem)
             data = self.rawDataFromDetection[index]
             dir_vector = {"sphere": np.array(self.transfer_vector(data["sphere"]["center"], 
-                                                                cameraPos, cameraRot)),
+                                                                self.cameraPos, self.cameraRot)),
                             "circle_3d": np.array(self.transfer_vector(data["circle_3d"]["center"],
-                                                                              cameraPos, cameraRot))}
+                                                                              self.cameraPos, self.cameraRot))}
             rayOrigin = dir_vector["sphere"]
             rayDirection = self.normalize(np.array(dir_vector["circle_3d"]) - dir_vector["sphere"])
-            intersectionTime = self.intersectPlane(planeNormal, planeCenter, rayOrigin, rayDirection)
+            intersectionTime = self.intersectPlane(self.planeNormal, self.planeCenter, rayOrigin, rayDirection)
             planeIntersection = np.array([0, 0, 0])
             if (intersectionTime > 0.0):
                 planeIntersection = self.getPoint([rayOrigin, rayDirection], intersectionTime)
 
             # TODO: finish this
             camera_up = np.array([0, 0, 1]) # Camera's up vector in global eye coordinates
-            cam_pos = np.array([20, -50, -10])  # Camera's position in global eye coordinates
+            cam_pos = np.array([0, -50, 0])  # Camera's position in global eye coordinates
             eye_pos = np.array([0, 0, 0]) # Target's position in global eye coordinates
 
             cameraRotInEulers = self.lookAt(cam_pos, eye_pos, camera_up)
-            cameraNormal = self.transfer_vector(np.array([0, 1, 0]), cameraPos, cameraRotInEulers)
+            cameraNormal = self.transfer_vector(np.array([0, 1, 0]), self.cameraPos, cameraRotInEulers)
             image = cv2.cvtColor(self.visualizeRaycast([planeIntersection if planeIntersection.all() else (0, 0, 0)], 
-                                                       cameraPos, (0, 0, 0), cameraNormal), cv2.COLOR_BGR2RGB)
+                                                       self.cameraPos, (0, 0, 0), cameraNormal), cv2.COLOR_BGR2RGB)
             
             image = image[80:560, 80:720]
             image = np.ascontiguousarray(image)
@@ -705,83 +811,6 @@ class MainWindow(FramelessMainWindow):
         outImage = outImage.rgbSwapped()
         self.__mainWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
         self.__mainWidget.imageLabel.setScaledContents(True)
-
-    def dir_vector(self, vec1, vec2):
-        return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
-
-    def lookAt(self, camera, target, up):
-        forward = target - camera
-        forward = forward / np.linalg.norm(forward)
-
-        right = np.cross(forward, up)
-        right = right / np.linalg.norm(right)
-
-        new_up = np.cross(right, forward)
-
-        result = np.identity(4)
-        result[0][0] = right[0]
-        result[0][1] = right[1]
-        result[0][2] = right[2]
-
-        result[1][0] = new_up[0]
-        result[1][1] = new_up[1]
-        result[1][2] = new_up[2]
-
-        result[2][0] = -forward[0]
-        result[2][1] = -forward[1]
-        result[2][2] = -forward[2]
-
-        translation = np.identity(4)
-        translation[0][3] = -camera[0]
-        translation[1][3] = -camera[1]
-        translation[2][3] = -camera[2]
-
-        lookAt_matrix = np.matmul(result, translation)
-        # Extract the rotation submatrix from the look-at matrix
-        rot_matrix = lookAt_matrix[:3, :3]
-        print(lookAt_matrix)
-        # Convert the rotation to Euler angles using the zxy convention
-        theta_z = np.arctan2(-rot_matrix[0, 1], rot_matrix[0, 0])
-        theta_x = np.arctan2(-rot_matrix[1, 2], rot_matrix[2, 2])
-        theta_y = np.arcsin(rot_matrix[0, 2])
-
-        # Convert the angles to degrees and print the result
-        euler_angles = np.array([theta_x, theta_y, theta_z]) * 180 / np.pi
-
-        return euler_angles
-
-
-    def transfer_vector(self, vec, position, rotation):
-        return vec @ self.eulerToRot(rotation) + position
-
-    def eulerToRot(self, theta, degrees=True):
-        r = Rotation.from_euler("zxy", (theta[2], theta[0], theta[1]), degrees)
-        return r.as_matrix()
-
-    def intersectPlane(self, n, p0, l0, l):
-        denom = self.matmul(-n, l)
-        if (denom > sys.float_info.min):
-            p0l0 = p0 - l0
-            t = self.matmul(p0l0, -n) / denom
-            return t
-        return -1.0
-        
-    def matmul(self, v1, v2, pad=False, padBy=1.0):
-        if(pad is True):
-            return np.matmul(v1, np.append(v2, padBy))[:-1]
-        return np.matmul(v1, v2)
-        
-    def getPoint(self, ray, distance):
-        return ray[0] + ray[1] * distance
-
-    def normalize(self, v):
-        return v / self.magnitude(v)
-        
-    def magnitude(self, v):
-        return np.sqrt(self.sqrMagnitude(v))
-            
-    def sqrMagnitude(self, v):
-        return self.matmul(v, v)
 
     def visualizeRaycast(self, raycastEnd, cameraPos, cameraTarget, cameraNormal, screenWidth = 250, screenHeight = 250, rayNumber = 1):
         fig = pyplot.figure()
@@ -874,8 +903,9 @@ class MainWindow(FramelessMainWindow):
             i.close()
         event.accept()
 
-class VisualizationWindow(FramelessMainWindow):
+class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
     def __init__(self, imagePath = None, rawData = None, heatmap = None, scanpath = None):
+        GlobalSharedClass.__init__(self)
         super().__init__()
 
         with open('./coordinates/random_uv_coords.csv') as f:
@@ -884,12 +914,6 @@ class VisualizationWindow(FramelessMainWindow):
 
         self.raw = {i: self.raw[i] for i in range(0, len(self.raw))}
 
-        self.loader = QUiLoader()
-        self.planeNormal = np.array([0, 1, 0])
-        self.planeCenter = np.array([0, -500, 0])
-        self.planeRot = np.array([0, 0, 180])
-        self.cameraPos = np.array([0, -50, 0])
-        self.cameraRot = np.array([90, 0, 0])
         self.qimg = None
         self.color1 = (0, 0, 0)
         self.color2 = (255, 255, 255) 
@@ -909,12 +933,9 @@ class VisualizationWindow(FramelessMainWindow):
         self.setCentralWidget(self.mainWidget)
         self.setGeometry(200, 50, 1024, 636)
         self.setFixedSize(1024, 636)
-        titleBar = self.getTitleBar()
-        titleBar.setFixedHeight(35)
-        for button in titleBar.findChildren(QPushButton):
-            button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
-        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
-        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
+
+        # Title bar design
+        self.setupTitleBar(self)
 
         self.uv_coords = []	
         self.dir_vectors = {}
@@ -930,8 +951,7 @@ class VisualizationWindow(FramelessMainWindow):
         self.__mainWidget.color1.clicked.connect(self.setFirstColor)
         self.__mainWidget.color2.clicked.connect(self.setSecondColor)
 
-        thresholdRegex = QRegularExpression("^(1?\d{1,2}|2[0-4]\d|25[0-5])$")
-        self.__mainWidget.thresholdInput.setValidator(QRegularExpressionValidator(thresholdRegex))
+        self.__mainWidget.thresholdInput.setValidator(QRegularExpressionValidator(self.thresholdRegex))
         self.__mainWidget.thresholdInput.setText(str(self.threshold))
         self.__mainWidget.thresholdInput.textChanged.connect(self.thresholdChange)
         self.__mainWidget.thresholdButton.clicked.connect(self.changeThreshold)
@@ -977,68 +997,6 @@ class VisualizationWindow(FramelessMainWindow):
         fileName, _ = QFileDialog.getSaveFileName(self, "Save Image", "", "PNG (*.png);;JPEG (*.jpg *.jpeg);;All Files (*)")
         if fileName:
             self.qimg.save(fileName)
-
-    # TODO: dokončiť toto
-    # Rotation.align_vectors([[0,1,0],[0,0,1]],[[0,0,1],[0,-1,0]])[0].as_euler("zxy", degrees=True)
-    def look_at_mat(self, target, up, pos):
-        zaxis = self.normalize(target - pos)
-        xaxis = self.normalize(np.cross(up, zaxis))
-        yaxis = self.normalize(np.cross(zaxis, xaxis))
-        return np.array([xaxis, yaxis, zaxis]).T
-
-    def dir_vector(self, vec1, vec2):
-        return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
-
-    def transfer_vector(self, vec, position, rotation):
-        #return [round(vec[0], 2), round(vec[2] - 50, 2), round(-vec[1], 2)]
-        return vec @ self.eulerToRot(rotation) + position
-
-    def eulerToRot(self, theta, degrees=True):
-        r = Rotation.from_euler("zxy", (theta[2], theta[0], theta[1]), degrees)
-        return r.as_matrix()
-
-    def intersectPlane(self, n, p0, l0, l):
-        denom = self.matmul(-n, l)
-        if (denom > sys.float_info.min):
-            p0l0 = p0 - l0
-            t = self.matmul(p0l0, -n) / denom
-            return t
-        return -1.0
-        
-    def matmul(self, v1, v2, pad=False, padBy=1.0):
-        if(pad is True):
-            return np.matmul(v1, np.append(v2, padBy))[:-1]
-        return np.matmul(v1, v2)
-        
-    def getPoint(self, ray, distance):
-        return ray[0] + ray[1] * distance
-
-    def normalize(self, v):
-        return v / self.magnitude(v)
-        
-    def magnitude(self, v):
-        return np.sqrt(self.sqrMagnitude(v))
-            
-    def sqrMagnitude(self, v):
-        return self.matmul(v, v)
-
-    def lerp(self, a, b, t):
-        return (1 - t) * a + t * b
-
-    def convert_uv_to_px(self, uv_data, width, height):
-        # TODO: tu pozrieť či je 0 - 1
-        return (int(uv_data[0] * width), int(uv_data[1] * height))
-
-    def convert_to_uv(self, vec, size_x=250, size_y=250, flip_y=True):
-        x = (vec[0] + size_x / 2) / size_x
-        y = (vec[2] + size_y / 2) / size_y
-        if flip_y:
-            y = 1 - y
-        
-        # TODO: vratiť ich aj ked su mimo
-        if x < 0 or x > 1 or y < 0 or y > 1:
-            return None
-        return (x, y)
 
     def rawToPoint(self):
         for i in self.rawData:
@@ -1310,8 +1268,9 @@ class VisualizationWindow(FramelessMainWindow):
         pyplot.close(fig)
         return data
     
-class CalibrationWindow(FramelessMainWindow):
+class CalibrationWindow(FramelessMainWindow, GlobalSharedClass):
     def __init__(self, mainApp, imagePath):
+        GlobalSharedClass.__init__(self)
         super().__init__()
 
         self.rawData = mainApp.rawDataFromDetection
@@ -1332,11 +1291,6 @@ class CalibrationWindow(FramelessMainWindow):
         self.circleRadius = 10
         self.repeat = False
         self.uv_coords = []
-        self.planeNormal = np.array([0, 1, 0])
-        self.planeCenter = np.array([0, -500, 0])
-        self.planeRot = np.array([0, 0, 180])
-        self.cameraPos = np.array([0, -50, 0])
-        self.cameraRot = np.array([90, 0, 0])
         self.dir_vectors = {}
         self.pointsInRadius = []
         self.mappedPoints = {}
@@ -1367,15 +1321,11 @@ class CalibrationWindow(FramelessMainWindow):
         self.setCentralWidget(self.mainWidget)
         self.setGeometry(200, 50, 1024, 636)
         self.setFixedSize(1024, 636)
-        titleBar = self.getTitleBar()
-        titleBar.setFixedHeight(35)
-        for button in titleBar.findChildren(QPushButton):
-            button.setStyleSheet("QPushButton {background-color: #FFE81F; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:hover {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px} QPushButton:pressed {background-color: #ccba18; border-radius: 7px; margin-right: 15px; width: 25px; height: 25px}")
-        titleBar.findChildren(QLabel)[1].setStyleSheet("QLabel {font-size: 15px; color: #F7FAFC; font-weight: bold; margin-left: 10px}")
-        titleBar.findChildren(QLabel)[0].setStyleSheet("QLabel {margin-left: 10px}")
 
-        radiusRegex = QRegularExpression("^[1-9][0-9]?$|^100$")
-        self.__mainWidget.radiusInput.setValidator(QRegularExpressionValidator(radiusRegex))
+        # Title bar design
+        self.setupTitleBar(self)
+
+        self.__mainWidget.radiusInput.setValidator(QRegularExpressionValidator(self.radiusRegex))
         self.__mainWidget.radiusInput.setText(str(self.radius))
         self.__mainWidget.radiusInput.textChanged.connect(self.setRadius)
 
@@ -1437,60 +1387,6 @@ class CalibrationWindow(FramelessMainWindow):
             self.__mainWidget.colorInactive.setStyleSheet(f'QPushButton {{background-color: {color.name()}; border: 5px solid #FFE81F;}}')
             self.colorInactive = (b, g, r)
             self.drawPoints()
-
-    def dir_vector(self, vec1, vec2):
-        return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
-
-    def transfer_vector(self, vec, position, rotation):
-        #return [round(vec[0], 2), round(vec[2] - 50, 2), round(-vec[1], 2)]
-        return vec @ self.eulerToRot(rotation) + position
-
-    def eulerToRot(self, theta, degrees=True):
-        r = Rotation.from_euler("zxy", (theta[2], theta[0], theta[1]), degrees)
-        return r.as_matrix()
-
-    def intersectPlane(self, n, p0, l0, l):
-        denom = self.matmul(-n, l)
-        if (denom > sys.float_info.min):
-            p0l0 = p0 - l0
-            t = self.matmul(p0l0, -n) / denom
-            return t
-        return -1.0
-        
-    def matmul(self, v1, v2, pad=False, padBy=1.0):
-        if(pad is True):
-            return np.matmul(v1, np.append(v2, padBy))[:-1]
-        return np.matmul(v1, v2)
-        
-    def getPoint(self, ray, distance):
-        return ray[0] + ray[1] * distance
-
-    def normalize(self, v):
-        return v / self.magnitude(v)
-        
-    def magnitude(self, v):
-        return np.sqrt(self.sqrMagnitude(v))
-            
-    def sqrMagnitude(self, v):
-        return self.matmul(v, v)
-
-    def lerp(self, a, b, t):
-        return (1 - t) * a + t * b
-
-    def convert_uv_to_px(self, uv_data, width, height):
-        # TODO: tu pozrieť či je 0 - 1
-        return (int(uv_data[0] * width), int(uv_data[1] * height))
-
-    def convert_to_uv(self, vec, size_x=250, size_y=250, flip_y=True):
-        x = (vec[0] + size_x / 2) / size_x
-        y = (vec[2] + size_y / 2) / size_y
-        if flip_y:
-            y = 1 - y
-        
-        # TODO: vratiť ich aj ked su mimo
-        if x < 0 or x > 1 or y < 0 or y > 1:
-            return None
-        return (x, y)
 
     def rawToPoint(self):
         for i in self.rawData:
