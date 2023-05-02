@@ -26,6 +26,9 @@ use('Agg')
 
 
 class GlobalSharedClass():
+    # TODO: Singleton
+    _instance = None
+
     def __init__(self):
         # UI Loader
         self.loader = QUiLoader()
