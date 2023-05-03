@@ -68,6 +68,9 @@ class GlobalSharedClass():
         self.graphParamRegex = QRegularExpression("^([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-9][0-9]|3[0-5][0-9]|360)$")
         self.thresholdRegex = QRegularExpression("^(1?\d{1,2}|2[0-4]\d|25[0-5])$")
 
+    def distance(self, p1, p2):
+        return sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+
     def dir_vector(self, vec1, vec2):
         return [vec2[0] - vec1[0], vec2[1] - vec1[1], vec2[2] - vec1[2]]
 
@@ -983,6 +986,8 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
 
         self.uv_coords = []	
         self.outliers = []
+        self.paddings = {}
+        self.furthestPoints = {}
         self.dir_vectors = {}
         self.points_group = {}
         self.repeat = False
@@ -1065,8 +1070,14 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
         image = None
         if self.scanpath and self.rawData:
             image = self.scanpathVisualization()
+            if len(self.outliers):
+                self.outliersVisualization(image)
+            self.repeat = True
         elif self.heatmap and self.rawData:
             image = self.heatmapVisualization()
+            if len(self.outliers):
+                self.outliersVisualization(image)
+            self.repeat = True
         else:
             image = cv2.imread(self.imagePath)
 
@@ -1079,6 +1090,37 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
         else:
             self.__mainWidget.image.setPixmap(QPixmap.fromImage(self.qimg))
             self.__mainWidget.image.setAlignment(Qt.AlignCenter)
+
+    def outliersVisualization(self, image):
+        if not self.repeat:
+            img = cv2.imread(self.imagePath)
+            height = img.shape[0]
+            width = img.shape[1]
+            self.furthestPoints = {"-x": (0, height // 2), "+x": (width, height // 2), "-y": (width // 2, 0), "+y": (width // 2, height)}
+            for i in range(0, len(self.outliers)):
+                self.outliers[i] = self.convert_uv_to_px(self.outliers[i], width, height)
+
+                if self.outliers[i][0] < self.furthestPoints["-x"][0]:
+                    self.furthestPoints["-x"] = self.outliers[i]
+                    
+                if self.outliers[i][0] > self.furthestPoints["+x"][0]:
+                    self.furthestPoints["+x"] = self.outliers[i]
+                
+                if self.outliers[i][1] < self.furthestPoints["-y"][1]:
+                    self.furthestPoints["-y"] = self.outliers[i]
+                
+                if self.outliers[i][1] > self.furthestPoints["+y"][1]:
+                    self.furthestPoints["+y"] = self.outliers[i]
+
+            self.paddings = {"-x": self.furthestPoints["-x"][0], 
+                        "+x": self.furthestPoints["+x"][0] - width,
+                        "-y": self.furthestPoints["-y"][1], 
+                        "+y": self.furthestPoints["+y"][1] - height}
+        
+        print(self.furthestPoints)
+        print(self.paddings)
+
+            
 
     def scanpathVisualization(self):
         if not len(self.uv_coords):
@@ -1105,10 +1147,6 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
         if not self.repeat:
             for i in range(0, len(self.uv_coords)):
                 self.uv_coords[i] = self.convert_uv_to_px(self.uv_coords[i], image_width, image_height)
-            self.repeat = True
-            # for i in range(0, len(self.raw)):
-            #     self.uv_coords.append(self.convert_uv_to_px(self.raw[i], image_width, image_height))
-            # self.repeat = True
 
         if not self.thresholdChanged:
             self.thresholdChanged = True
@@ -1507,9 +1545,6 @@ class CalibrationWindow(FramelessMainWindow, GlobalSharedClass):
             self.imageWidth = image.shape[1]
             self.__mainWidget.image.setPixmap(QPixmap.fromImage(self.qimg))
             self.__mainWidget.image.setAlignment(Qt.AlignCenter)
-
-    def distance(self, p1, p2):
-        return sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
     def mousePressEvent(self, event):
         x, y = event.pos().x(), event.pos().y()
