@@ -158,18 +158,17 @@ class GlobalSharedClass():
         return (1 - t) * a + t * b
 
     def convert_uv_to_px(self, uv_data, width, height):
-        # TODO: tu pozrieť či je 0 - 1, pridať parameter ktory to bude checkovat alebo ignorovat
         return (int(uv_data[0] * width), int(uv_data[1] * height))
 
-    def convert_to_uv(self, vec, size_x=250, size_y=250, flip_y=True):
+    def convert_to_uv(self, vec, size_x=250, size_y=250, flip_y=True, includeOutliers=False):
         x = (vec[0] + size_x / 2) / size_x
         y = (vec[2] + size_y / 2) / size_y
         if flip_y:
             y = 1 - y
-        
-        # TODO: vratiť ich aj ked su mimo
-        if x < 0 or x > 1 or y < 0 or y > 1:
-            return None
+
+        if not includeOutliers:
+            if x < 0 or x > 1 or y < 0 or y > 1:
+                return None
         return (x, y)
     
     def setupTitleBar(self, outerClass):
@@ -206,7 +205,9 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         self.image = None
         self.imageFlag = 'Simple'
         self.lastDetectionImage = None
+        self.isRunning = False
         self.openedWindows = []
+        self.pointsOnDisplay = []
 
         self.__mainWidget = QWidget()
         ui = QFile("ui/main.ui")
@@ -441,6 +442,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         self.imageFlag = button.text().split(" ")[0]
         if self.clickedItem:
             self.imageClicked(item=self.clickedItem)
+            print("clicked flag: ", self.imageFlag)
         elif self.lastDetectionImage:
             self.__mainWidget.rayRadio.setEnabled(False)
             self.imageClicked(lastImage=self.lastDetectionImage)
@@ -660,6 +662,13 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         self.__mainWidget.modelWarmupDuration.setText(str(self.original_config["detector_3d"]['model_warmup_duration']))
         self.__mainWidget.calculateRmsResidual.setText(str(bool(self.original_config["detector_3d"]['calculate_rms_residual'])))
 
+    def resetDetectors(self):
+        self.detector_2d = Detector2D(self.detector_2d_config)
+        self.previewDetector2d = Detector2D(self.detector_2d_config)
+        self.camera = CameraModel(focal_length=self.config['focal_length'], resolution=[640, 480])
+        self.detector_3d = Detector3D(camera=self.camera)
+        self.detector_3d.update_properties(self.detector_3d_config)
+
     def reanalyze(self):
         self.detector_2d = Detector2D(self.detector_2d_config)
         self.previewDetector2d = Detector2D(self.detector_2d_config)
@@ -670,6 +679,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         self.lastDetectionImage = None
         self.clickedItem = None
         self.rawDataFromDetection = {}
+        self.pointsOnDisplay = []
         self.startDetection()
 
     def loadImage(self):
@@ -678,11 +688,13 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
             self.imageName = re.search(r'[^/\\&\?]+\.\w+$', fname[0]).group(0)
             self.imagePath = fname[0]
             self.rawDataFromDetection = {}
+            self.pointsOnDisplay = []
             self.fillImageList = 0
             self.detectionRound = 0
             self.imagesPaths = {}
             self.lastDetectionImage = None
             self.clickedItem = None
+            self.resetDetectors()
             self.folderPath = os.path.dirname(fname[0])
             file_list = glob.glob(os.path.join(self.folderPath, "*"))
             self.imageAmount = len(file_list)
@@ -701,7 +713,9 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
             self.clickedItem = None
             self.detectionRound = 0
             self.imagesPaths = {}
+            self.resetDetectors()
             self.rawDataFromDetection = {}
+            self.pointsOnDisplay = []
             self.__mainWidget.imagePath.setText("Choose image")
             self.__mainWidget.startButton.setEnabled(False)
             self.__mainWidget.rayRadio.setEnabled(False)
@@ -713,6 +727,10 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
             self.clickedItem = None
             self.__mainWidget.rayRadio.setEnabled(False)
             self.__mainWidget.calibrate.setEnabled(False)
+            self.isRunning = True
+            if self.__mainWidget.rayRadio.isChecked():
+                self.__mainWidget.rawRadio.setChecked(True)
+                self.imageFlag = "Raw"
             if self.detectionRound == 0:
                 self.renderImage()
                 if self.fillImageList == 0:
@@ -721,8 +739,10 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
                 self.renderImage()
             else:
                 self.rawDataFromDetection = {}
+                self.pointsOnDisplay = []
                 self.renderImage()
             self.__mainWidget.calibrate.setEnabled(True)
+            self.isRunning = False
 
     def renderImage(self):
         fileName = self.imageName.split("_")
@@ -761,13 +781,24 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
 
             if self.detectionRound == 1:
                 self.rawDataFromDetection[i] = result_3d
+                eyePosWorld = self.transform(np.array(result_3d["sphere"]["center"]), self.cameraPos, self.cameraRotMat)
+                gazeRay = self.normalize(self.rotate(result_3d["circle_3d"]["normal"], self.cameraRotMat))
+
+                intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
+
+                intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
+                planeIntersection = np.array([0, 0, 0])
+                if (intersectionTime > 0.0):
+                    planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
+                
+                self.pointsOnDisplay.append(planeIntersection)
 
             self.displayImage(image)
             cv2.waitKey(10)
 
     def imageClicked(self, item = None, lastImage = None):
         self.clickedItem = item
-        if self.clickedItem:
+        if self.clickedItem and not self.isRunning:
             self.__mainWidget.rayRadio.setEnabled(True)
         path = self.lastDetectionImage if lastImage else self.imagesPaths[item.text()]
         image = cv2.imread(path)
@@ -796,32 +827,14 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
             eyePosWorld = self.transform(np.array(data["sphere"]["center"]), self.cameraPos, self.cameraRotMat)
             gazeRay = self.normalize(self.rotate(data["circle_3d"]["normal"], self.cameraRotMat))
 
-            intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
-
-            intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
-            planeIntersection = np.array([0, 0, 0])
-            if (intersectionTime > 0.0):
-                planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
-
-            image = cv2.cvtColor(self.visualizeRaycast([planeIntersection if planeIntersection.all() else (0, 0, 0)], 
+            planeIntersection = self.pointsOnDisplay[index]
+            image = cv2.cvtColor(self.visualizeRaycast(self.pointsOnDisplay, planeIntersection, 
                                                        self.cameraPos, eyePosWorld, self.cameraDirsWorld, gazeRay, 
-                                                       screenWidth=self.displaySize[0], screenHeight=self.displaySize[1]),
-                                                       cv2.COLOR_BGR2RGB)
+                                                       screenWidth=self.displaySize[0], screenHeight=self.displaySize[1], 
+                                                       rayNumber=index + 1), cv2.COLOR_BGR2RGB)
             
             image = image[80:560, 80:720]
             image = np.ascontiguousarray(image)
-            
-        else:
-            result_2d = self.previewDetector2d.detect(grayscale_array)                 
-            cv2.ellipse(
-                image,
-                tuple(int(v) for v in result_2d["ellipse"]["center"]),
-                tuple(int(v / 2) for v in result_2d["ellipse"]["axes"]),
-                result_2d["ellipse"]["angle"],
-                0,
-                360,
-                (0, 255, 0), 
-            )
 
         self.displayImage(image)
 
@@ -839,7 +852,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         self.__mainWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
         self.__mainWidget.imageLabel.setScaledContents(True)
 
-    def visualizeRaycast(self, raycastEnd, cameraPos, cameraTarget, cameraDirs, gazeDir, screenWidth = 250, screenHeight = 250, rayNumber = 1):
+    def visualizeRaycast(self, allRays, raycastEnd, cameraPos, cameraTarget, cameraDirs, gazeDir, screenWidth = 250, screenHeight = 250, rayNumber = 1):
         fig = pyplot.figure()
         ax = fig.add_subplot(111, projection='3d')
 
@@ -905,15 +918,19 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         # Eye axes
         origin = (0, 0, 0)
         dirs = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
+
         # Camera axes
         ax.quiver(*origin, *dirs[0], length=25, normalize=True, color='red')
         ax.quiver(*origin, *dirs[1], length=25, normalize=True, color='green')
         ax.quiver(*origin, *dirs[2], length=25, normalize=True, color='blue')
 
+        # Gaze direction
+        x_start, y_start, z_start = origin
+        x_end, y_end, z_end = raycastEnd[0], raycastEnd[1], raycastEnd[2]
+        ax.plot([x_start, x_end], [y_start, y_end], [z_start, z_end], color='red', linewidth=1)
+
         for i in range(rayNumber):
-            x_start, y_start, z_start = origin
-            x_end, y_end, z_end = raycastEnd[i][0], raycastEnd[i][1], raycastEnd[i][2]
-            ax.plot([x_start, x_end], [y_start, y_end], [z_start, z_end], color='red', linewidth=1)
+            ax.scatter(allRays[i][0], allRays[i][1], allRays[i][2], color='blue')
 
 
         ax.view_init(elev=self.config['elev'], azim=self.config['azim'])
