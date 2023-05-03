@@ -961,6 +961,9 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
 
         self.raw = {i: self.raw[i] for i in range(0, len(self.raw))}
 
+        self.paddedImage = None
+        self.imageWidth = None
+        self.imageHeight = None
         self.qimg = None
         self.color1 = (0, 0, 0)
         self.color2 = (255, 255, 255) 
@@ -1071,12 +1074,12 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
         if self.scanpath and self.rawData:
             image = self.scanpathVisualization()
             if len(self.outliers):
-                self.outliersVisualization(image)
+                image = self.outliersVisualization(image)
             self.repeat = True
         elif self.heatmap and self.rawData:
             image = self.heatmapVisualization()
             if len(self.outliers):
-                self.outliersVisualization(image)
+                image = self.outliersVisualization(image)
             self.repeat = True
         else:
             image = cv2.imread(self.imagePath)
@@ -1094,11 +1097,12 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
     def outliersVisualization(self, image):
         if not self.repeat:
             img = cv2.imread(self.imagePath)
-            height = img.shape[0]
-            width = img.shape[1]
-            self.furthestPoints = {"-x": (0, height // 2), "+x": (width, height // 2), "-y": (width // 2, 0), "+y": (width // 2, height)}
+            self.imageHeight = img.shape[0]
+            self.imageWidth = img.shape[1]
+            self.furthestPoints = {"-x": (0, self.imageHeight // 2), "+x": (self.imageWidth, self.imageHeight // 2),
+                                    "-y": (self.imageWidth // 2, 0), "+y": (self.imageWidth // 2, self.imageHeight)}
             for i in range(0, len(self.outliers)):
-                self.outliers[i] = self.convert_uv_to_px(self.outliers[i], width, height)
+                self.outliers[i] = self.convert_uv_to_px(self.outliers[i], self.imageWidth, self.imageHeight)
 
                 if self.outliers[i][0] < self.furthestPoints["-x"][0]:
                     self.furthestPoints["-x"] = self.outliers[i]
@@ -1113,13 +1117,26 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
                     self.furthestPoints["+y"] = self.outliers[i]
 
             self.paddings = {"-x": self.furthestPoints["-x"][0], 
-                        "+x": self.furthestPoints["+x"][0] - width,
+                        "+x": self.furthestPoints["+x"][0] - self.imageWidth,
                         "-y": self.furthestPoints["-y"][1], 
-                        "+y": self.furthestPoints["+y"][1] - height}
+                        "+y": self.furthestPoints["+y"][1] - self.imageHeight}
         
-        print(self.furthestPoints)
-        print(self.paddings)
 
+            self.paddedImage = np.zeros((self.imageHeight + abs(self.paddings["-y"]) + self.paddings["+y"], 
+                                    self.imageWidth + abs(self.paddings["-x"]) + self.paddings["+x"], 3), np.uint8)
+        
+        print(self.paddedImage.shape)
+        print(self.paddings)
+        print(self.furthestPoints)
+        
+        self.paddedImage[abs(self.paddings["-y"]):abs(self.paddings["-y"]) + self.imageHeight,
+                    abs(self.paddings["-x"]):abs(self.paddings["-x"]) + self.imageWidth] = image
+        
+        for i in range(0, len(self.outliers)):
+            cv2.circle(self.paddedImage, (self.outliers[i][0] + abs(self.paddings["-x"]), 
+                                          self.outliers[i][1] + abs(self.paddings["-y"])), 10, (0, 0, 255), -1)
+
+        return self.paddedImage
             
 
     def scanpathVisualization(self):
