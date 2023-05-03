@@ -982,6 +982,7 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
         self.setupTitleBar(self)
 
         self.uv_coords = []	
+        self.outliers = []
         self.dir_vectors = {}
         self.points_group = {}
         self.repeat = False
@@ -1044,23 +1045,20 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
 
     def rawToPoint(self):
         for i in self.rawData:
-            self.dir_vectors[i] = {"sphere": np.array(self.transfer_vector(self.rawData[i]["sphere"]["center"], 
-                                                                           self.cameraPos, self.cameraRot)),
-                                   "circle_3d": np.array(self.transfer_vector(self.rawData[i]["circle_3d"]["center"],
-                                                                              self.cameraPos, self.cameraRot))}
+            eyePosWorld = self.transform(np.array(self.rawData[i]["sphere"]["center"]), self.cameraPos, self.cameraRotMat)
+            gazeRay = self.normalize(self.rotate(self.rawData[i]["circle_3d"]["normal"], self.cameraRotMat))
 
-        for i in self.dir_vectors:
-            rayOrigin = self.dir_vectors[i]["sphere"]
-            rayDirection = self.normalize(np.array(self.dir_vectors[i]["circle_3d"]) - self.dir_vectors[i]["sphere"])
-            intersectionTime = self.intersectPlane(self.planeNormal, self.planeCenter, rayOrigin, rayDirection)
-            
+            intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
+
+            intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
+            planeIntersection = np.array([0, 0, 0])
             if (intersectionTime > 0.0):
-                planeIntersection = self.getPoint([rayOrigin, rayDirection], intersectionTime)
-                # TODO: world to display local transformation
-                planeIntersection = self.transfer_vector(planeIntersection, self.planeCenter, self.planeRot)
-                #planeIntersection[0] = -planeIntersection[0] # otočena obrazovka
-                result = self.convert_to_uv(planeIntersection)
-                if result:
+                planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
+                planeIntersection = self.transform(planeIntersection, self.displayPos, self.displayRotMat)
+                result = self.convert_to_uv(planeIntersection, includeOutliers=True)
+                if result[0] > 1 or result[0] < 0 or result[1] > 1 or result[1] < 0:
+                    self.outliers.append(result)
+                else:
                     self.uv_coords.append(result)
 
     def displayImage(self):
