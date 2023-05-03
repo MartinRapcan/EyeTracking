@@ -40,6 +40,25 @@ class GlobalSharedClass():
         self.cameraPos = np.array([0, -50, 0])
         self.cameraRot = np.array([90, 0, 0])
 
+        self.cameraPos = np.array([20, -50, -10])
+        self.cameraRotMat = np.array([
+            [0.884918212890625, -0.105633445084095, -0.4536091983318329],
+            [0.4657464325428009, 0.20070354640483856, 0.8618574738502502],
+            [0.0, -0.973940372467041, 0.22680459916591644]
+        ])
+        self.displaySize = (250, 250) #width, height
+        self.displayPos = np.array([0, -500, 0])
+        self.displayRot = np.array([0, 0, 180])
+        self.displayRotMat = self.eulerToRot(self.displayRot)
+        self.displayNormalLocal = np.array([0, -1, 0])
+        self.displayNormalWorld = self.normalize(self.rotate(self.displayNormalLocal, self.displayRotMat))
+        
+        self.cameraDirsWorld = (
+            self.rotate(np.array((1, 0, 0)), self.cameraRotMat),
+            self.rotate(np.array((0, 1, 0)), self.cameraRotMat),
+            self.rotate(np.array((0, 0, 1)), self.cameraRotMat)
+        )
+
         # Validators
         self.radiusRegex = QRegularExpression("^[1-9][0-9]?$|^100$")
         self.floatingRegex = QRegularExpression("^(0|[1-9]\\d*)(\\.\\d+)?$")
@@ -94,10 +113,19 @@ class GlobalSharedClass():
         return euler_angles
 
 
+    def transform(self, p, position, rotMat):
+        return self.rotate(p, rotMat) + position
+    
+    def inverseTransform(self, p, position, rotMat):
+        return (p - position) @ rotMat #inverse rotation
+        
+    def rotate(self, p, rotMat):
+        return p @ rotMat.T
+
     def transfer_vector(self, vec, position, rotation):
         return vec @ self.eulerToRot(rotation) + position
 
-    def eulerToRot(self, theta, degrees=True):
+    def eulerToRot(self, theta, degrees=True) :
         r = Rotation.from_euler("zxy", (theta[2], theta[0], theta[1]), degrees)
         return r.as_matrix()
 
@@ -108,7 +136,7 @@ class GlobalSharedClass():
             t = self.matmul(p0l0, -n) / denom
             return t
         return -1.0
-        
+            
     def matmul(self, v1, v2, pad=False, padBy=1.0):
         if(pad is True):
             return np.matmul(v1, np.append(v2, padBy))[:-1]
@@ -414,6 +442,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         if self.clickedItem:
             self.imageClicked(item=self.clickedItem)
         elif self.lastDetectionImage:
+            self.__mainWidget.rayRadio.setEnabled(False)
             self.imageClicked(lastImage=self.lastDetectionImage)
 
     def configChanged(self):
@@ -693,7 +722,6 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
             else:
                 self.rawDataFromDetection = {}
                 self.renderImage()
-            self.__mainWidget.rayRadio.setEnabled(True)
             self.__mainWidget.calibrate.setEnabled(True)
 
     def renderImage(self):
@@ -739,6 +767,8 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
 
     def imageClicked(self, item = None, lastImage = None):
         self.clickedItem = item
+        if self.clickedItem:
+            self.__mainWidget.rayRadio.setEnabled(True)
         path = self.lastDetectionImage if lastImage else self.imagesPaths[item.text()]
         image = cv2.imread(path)
 
@@ -763,26 +793,20 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         elif self.imageFlag == "3D" and self.clickedItem and self.rawDataFromDetection:
             index = self.__mainWidget.listImages.row(self.clickedItem)
             data = self.rawDataFromDetection[index]
-            dir_vector = {"sphere": np.array(self.transfer_vector(data["sphere"]["center"], 
-                                                                self.cameraPos, self.cameraRot)),
-                            "circle_3d": np.array(self.transfer_vector(data["circle_3d"]["center"],
-                                                                              self.cameraPos, self.cameraRot))}
-            rayOrigin = dir_vector["sphere"]
-            rayDirection = self.normalize(np.array(dir_vector["circle_3d"]) - dir_vector["sphere"])
-            intersectionTime = self.intersectPlane(self.planeNormal, self.planeCenter, rayOrigin, rayDirection)
+            eyePosWorld = self.transform(np.array(data["sphere"]["center"]), self.cameraPos, self.cameraRotMat)
+            gazeRay = self.normalize(self.rotate(data["circle_3d"]["normal"], self.cameraRotMat))
+
+            intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
+
+            intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
             planeIntersection = np.array([0, 0, 0])
             if (intersectionTime > 0.0):
-                planeIntersection = self.getPoint([rayOrigin, rayDirection], intersectionTime)
+                planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
 
-            # TODO: finish this
-            camera_up = np.array([0, 0, 1]) # Camera's up vector in global eye coordinates
-            cam_pos = np.array([0, -50, 0])  # Camera's position in global eye coordinates
-            eye_pos = np.array([0, 0, 0]) # Target's position in global eye coordinates
-
-            cameraRotInEulers = self.lookAt(cam_pos, eye_pos, camera_up)
-            cameraNormal = self.transfer_vector(np.array([0, 1, 0]), self.cameraPos, cameraRotInEulers)
             image = cv2.cvtColor(self.visualizeRaycast([planeIntersection if planeIntersection.all() else (0, 0, 0)], 
-                                                       self.cameraPos, (0, 0, 0), cameraNormal), cv2.COLOR_BGR2RGB)
+                                                       self.cameraPos, eyePosWorld, self.cameraDirsWorld, gazeRay, 
+                                                       screenWidth=self.displaySize[0], screenHeight=self.displaySize[1]),
+                                                       cv2.COLOR_BGR2RGB)
             
             image = image[80:560, 80:720]
             image = np.ascontiguousarray(image)
@@ -815,7 +839,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         self.__mainWidget.imageLabel.setPixmap(QPixmap.fromImage(outImage))
         self.__mainWidget.imageLabel.setScaledContents(True)
 
-    def visualizeRaycast(self, raycastEnd, cameraPos, cameraTarget, cameraNormal, screenWidth = 250, screenHeight = 250, rayNumber = 1):
+    def visualizeRaycast(self, raycastEnd, cameraPos, cameraTarget, cameraDirs, gazeDir, screenWidth = 250, screenHeight = 250, rayNumber = 1):
         fig = pyplot.figure()
         ax = fig.add_subplot(111, projection='3d')
 
@@ -830,18 +854,17 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         ax.set_zlabel('Z')
 
         # Display
-        r = 125
-        x1 = r
+        x1 = screenWidth / 2
         y1 = -500
-        z1 = r
-        x2 = - r
+        z1 = screenHeight / 2
+        x2 = - screenWidth / 2
         y2 = -500
-        z2 = - r
+        z2 = - screenHeight / 2
         verts = [(x1, y1, z1), (x2, y1, z1), (x2, y2, z2), (x1, y2, z2)]
         ax.add_collection3d(Poly3DCollection([verts], facecolors='gray', linewidths=1, edgecolors='r', alpha=.25))
 
         # Display label
-        x, y, z = 130, -500, 130
+        x, y, z = screenWidth / 2 + 10, -500, screenHeight / 2 + 10
         text = Text3D(x, y, z, 'Display', zdir='x')
         ax.add_artist(text)
 
@@ -874,24 +897,25 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         x_end, y_end, z_end = cameraTarget[0], cameraTarget[1], cameraTarget[2]
         ax.plot([x_start, x_end], [y_start, y_end], [z_start, z_end], color='green', linewidth=1)
 
-        # Camera normal
-        x_start, y_start, z_start = cameraPos[0], cameraPos[1], cameraPos[2]
-        x_end, y_end, z_end = cameraNormal[0], cameraNormal[1], cameraNormal[2]
+        # Camera axes
+        ax.quiver(*cameraPos, *cameraDirs[0], length=25, normalize=True, color='red')
+        ax.quiver(*cameraPos, *cameraDirs[1], length=25, normalize=True, color='green')
+        ax.quiver(*cameraPos, *cameraDirs[2], length=25, normalize=True, color='blue')
 
-        dx = x_end - x_start
-        dy = y_end - y_start
-        dz = z_end - z_start
-
-        ax.quiver(x_start, y_start, z_start, dx, dy, dz, length=100, normalize=True, color='blue')
+        # Eye axes
+        origin = (0, 0, 0)
+        dirs = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
+        # Camera axes
+        ax.quiver(*origin, *dirs[0], length=25, normalize=True, color='red')
+        ax.quiver(*origin, *dirs[1], length=25, normalize=True, color='green')
+        ax.quiver(*origin, *dirs[2], length=25, normalize=True, color='blue')
 
         for i in range(rayNumber):
-            x_start, y_start, z_start = 0, 0, 0
+            x_start, y_start, z_start = origin
             x_end, y_end, z_end = raycastEnd[i][0], raycastEnd[i][1], raycastEnd[i][2]
             ax.plot([x_start, x_end], [y_start, y_end], [z_start, z_end], color='red', linewidth=1)
 
 
-        # TODO: pridať do configu elev a azim ..
-        # TODO: aj normala oka zobraziť
         ax.view_init(elev=self.config['elev'], azim=self.config['azim'])
         fig.set_size_inches(8, 6)
         fig.tight_layout()
