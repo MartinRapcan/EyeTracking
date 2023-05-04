@@ -27,18 +27,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.dynamic_canvas = FigureCanvas(Figure(figsize=(10, 10)))
         layout.addWidget(self.dynamic_canvas)
     
-        self.visualizeRaycast([(0, -500, 100)], (0, -50, 0), (0, 0, 0), (0, 50, 1))
+        self.visualizeRaycast([(0, -500, 100)], (0, -50, 0), (0, 0, 0), (0, 50, 1), scaleFactor=0.5)
 
         self.dynamic_canvas.draw()
 
-    def visualizeRaycast(self, raycastEnd, cameraPos, cameraTarget, cameraNormal, screenWidth = 250, screenHeight = 250, rayNumber = 1):
+    def visualizeRaycast(self, raycastEnd, cameraPos, cameraTarget, cameraNormal, screenWidth = 250, screenHeight = 250, rayNumber = 1, scaleFactor=1):
         fig = self.dynamic_canvas.figure
         ax = fig.add_subplot(111, projection='3d')
 
         # Set limit for each axis
-        ax.set_xlim(250, -250)
-        ax.set_ylim(0, -500)
-        ax.set_zlim(-250, 250)
+        ax.set_xlim(250 * scaleFactor, -250 * scaleFactor)
+        ax.set_ylim(0, -500 * scaleFactor)
+        ax.set_zlim(-250 * scaleFactor, 250 * scaleFactor)
 
         # Set label for each axis
         ax.set_xlabel('X')

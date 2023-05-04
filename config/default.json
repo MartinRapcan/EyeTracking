@@ -38,5 +38,6 @@
     },
     "focal_length":561.5,
     "elev": 10,
-    "azim": 315
+    "azim": 315,
+    "scaleFactor": 1.0
  }

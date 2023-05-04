@@ -244,6 +244,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         # Graph config values
         self.__mainWidget.elev.setText(str(self.config['elev']))
         self.__mainWidget.azim.setText(str(self.config['azim']))
+        self.__mainWidget.scaleFactor.setText(str(self.config['scaleFactor']))
 
         # Camera config values
         self.__mainWidget.focalLength.setText(str(self.config['focal_length']))
@@ -288,6 +289,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         # Graph validation
         self.__mainWidget.elev.setValidator(QRegularExpressionValidator(self.graphParamRegex))
         self.__mainWidget.azim.setValidator(QRegularExpressionValidator(self.graphParamRegex))
+        self.__mainWidget.scaleFactor.setValidator(QRegularExpressionValidator(self.floatingRegex))
 
         # Camera validation
         self.__mainWidget.focalLength.setValidator(QRegularExpressionValidator(self.floatingRegex))
@@ -332,6 +334,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         # Graph event listeners
         self.__mainWidget.elev.textChanged.connect(self.configChanged)
         self.__mainWidget.azim.textChanged.connect(self.configChanged)
+        self.__mainWidget.scaleFactor.textChanged.connect(self.configChanged)
 
         # Camera event listeners
         self.__mainWidget.focalLength.textChanged.connect(self.configChanged)
@@ -403,8 +406,8 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         self.__mainWidget.listImages.itemClicked.connect(self.imageClicked)
         self.__mainWidget.startButton.setEnabled(False)
         self.__mainWidget.startButton.clicked.connect(self.startDetection)
-        self.__mainWidget.calibrate.clicked.connect(self.openCalibrationWindow)
-        self.__mainWidget.calibrate.setEnabled(False)
+        #self.__mainWidget.calibrate.clicked.connect(self.openCalibrationWindow)
+        #self.__mainWidget.calibrate.setEnabled(False)
         self.__mainWidget.reanalyze.clicked.connect(self.reanalyze)
         self.__mainWidget.loadImage.clicked.connect(self.loadImage)
         self.__mainWidget.scanpath.clicked.connect(self.showScanpath)
@@ -462,6 +465,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         if self.__mainWidget.focalLength.text() != ""  \
             and self.__mainWidget.elev.text() != "" \
             and self.__mainWidget.azim.text() != "" \
+            and self.__mainWidget.scaleFactor.text() != "" \
             and self.__mainWidget.thresholdSwirski.text() != "" \
             and self.__mainWidget.thresholdKalman.text() != "" \
             and self.__mainWidget.thresholdShortTerm.text() != "" \
@@ -510,6 +514,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         # Graph parameters
         self.config['elev'] = int(self.__mainWidget.elev.text())
         self.config['azim'] = int(self.__mainWidget.azim.text())
+        self.config['scaleFactor'] = float(self.__mainWidget.scaleFactor.text())
 
         # Camera parameters
         self.config['focal_length'] = float(self.__mainWidget.focalLength.text())
@@ -570,6 +575,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         # Graph parameters
         self.__mainWidget.elev.setText(str(self.default_config['elev']))
         self.__mainWidget.azim.setText(str(self.default_config['azim']))
+        self.__mainWidget.scaleFactor.setText(str(self.default_config['scaleFactor']))
 
         # 2D detector parameters
         self.__mainWidget.intensityRange.setText(str(self.default_config["detector_2d"]['intensity_range']))
@@ -626,6 +632,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         # Graph parameters
         self.__mainWidget.elev.setText(str(self.original_config['elev']))
         self.__mainWidget.azim.setText(str(self.original_config['azim']))
+        self.__mainWidget.scaleFactor.setText(str(self.original_config['scaleFactor']))
 
         # 2D detector parameters
         self.__mainWidget.coarseDetection.setText(str(bool(self.original_config["detector_2d"]['coarse_detection'])))
@@ -728,7 +735,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         if self.imagePath:
             self.clickedItem = None
             self.__mainWidget.rayRadio.setEnabled(False)
-            self.__mainWidget.calibrate.setEnabled(False)
+            #self.__mainWidget.calibrate.setEnabled(False)
             self.isRunning = True
             if self.__mainWidget.rayRadio.isChecked():
                 self.__mainWidget.rawRadio.setChecked(True)
@@ -743,7 +750,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
                 self.rawDataFromDetection = {}
                 self.pointsOnDisplay = []
                 self.renderImage()
-            self.__mainWidget.calibrate.setEnabled(True)
+            #self.__mainWidget.calibrate.setEnabled(True)
             self.isRunning = False
 
     def renderImage(self):
@@ -857,11 +864,12 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
     def visualizeRaycast(self, allRays, raycastEnd, cameraPos, cameraTarget, cameraDirs, gazeDir, screenWidth = 250, screenHeight = 250, rayNumber = 1):
         fig = pyplot.figure()
         ax = fig.add_subplot(111, projection='3d')
+        scale = 1.0 / max(self.config['scaleFactor'], 0.1)
 
         # Set limit for each axis
-        ax.set_xlim(250, -250)
-        ax.set_ylim(0, -500)
-        ax.set_zlim(-250, 250)
+        ax.set_xlim(250 * scale, -250 * scale)
+        ax.set_ylim(0, -500 * scale)
+        ax.set_zlim(-250 * scale, 250 * scale)
 
         # Set label for each axis
         ax.set_xlabel('X')
@@ -963,6 +971,7 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
         self.paddedImage = None
         self.imageWidth = None
         self.imageHeight = None
+        self.paddingMax = None
         self.qimg = None
         self.color1 = (0, 0, 0)
         self.color2 = (255, 255, 255) 
@@ -988,8 +997,7 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
 
         self.uv_coords = []	
         self.outliers = []
-        self.paddings = {}
-        self.furthestPoints = {}
+        self.outliersToDraw = []
         self.dir_vectors = {}
         self.points_group = {}
         self.repeat = False
@@ -1098,44 +1106,35 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
             img = cv2.imread(self.imagePath)
             self.imageHeight = img.shape[0]
             self.imageWidth = img.shape[1]
-            self.furthestPoints = {"-x": (0, self.imageHeight // 2), "+x": (self.imageWidth, self.imageHeight // 2),
-                                    "-y": (self.imageWidth // 2, 0), "+y": (self.imageWidth // 2, self.imageHeight)}
+            self.paddingMax = min(self.imageHeight, self.imageWidth) // 10
+            
             for i in range(0, len(self.outliers)):
-                self.outliers[i] = self.convert_uv_to_px(self.outliers[i], self.imageWidth, self.imageHeight)
+                self.outliers[i] = self.convert_uv_to_px(self.outliers[i], self.imageWidth, self.imageHeight)     
+                if self.outliers[i][0] + self.paddingMax < 0:
+                    continue
+                if self.outliers[i][1] + self.paddingMax < 0:
+                    continue
+                if self.outliers[i][0] > self.imageWidth + self.paddingMax:
+                    continue
+                if self.outliers[i][1] > self.imageHeight + self.paddingMax:
+                    continue
+                self.outliersToDraw.append(self.outliers[i])
 
-                if self.outliers[i][0] < self.furthestPoints["-x"][0]:
-                    self.furthestPoints["-x"] = self.outliers[i]
-                    
-                if self.outliers[i][0] > self.furthestPoints["+x"][0]:
-                    self.furthestPoints["+x"] = self.outliers[i]
-                
-                if self.outliers[i][1] < self.furthestPoints["-y"][1]:
-                    self.furthestPoints["-y"] = self.outliers[i]
-                
-                if self.outliers[i][1] > self.furthestPoints["+y"][1]:
-                    self.furthestPoints["+y"] = self.outliers[i]
-
-            self.paddings = {"-x": self.furthestPoints["-x"][0], 
-                        "+x": self.furthestPoints["+x"][0] - self.imageWidth,
-                        "-y": self.furthestPoints["-y"][1], 
-                        "+y": self.furthestPoints["+y"][1] - self.imageHeight}
+            self.paddedImage = np.zeros((self.imageHeight + 2 * self.paddingMax,
+                                    self.imageWidth + 2 * self.paddingMax, 3), np.uint8)
         
 
-            self.paddedImage = np.zeros((self.imageHeight + abs(self.paddings["-y"]) + self.paddings["+y"], 
-                                    self.imageWidth + abs(self.paddings["-x"]) + self.paddings["+x"], 3), np.uint8)
-        
-        print(self.paddedImage.shape)
-        print(self.paddings)
-        print(self.furthestPoints)
-        
-        self.paddedImage[abs(self.paddings["-y"]):abs(self.paddings["-y"]) + self.imageHeight,
-                    abs(self.paddings["-x"]):abs(self.paddings["-x"]) + self.imageWidth] = image
-        
-        for i in range(0, len(self.outliers)):
-            cv2.circle(self.paddedImage, (self.outliers[i][0] + abs(self.paddings["-x"]), 
-                                          self.outliers[i][1] + abs(self.paddings["-y"])), 10, (0, 0, 255), -1)
+        if len(self.outliersToDraw):
+            self.paddedImage[self.paddingMax:self.paddingMax + self.imageHeight,
+                            self.paddingMax:self.paddingMax + self.imageWidth] = image
+            
+            for i in range(0, len(self.outliersToDraw)):
+                cv2.circle(self.paddedImage, (self.outliers[i][0] + self.paddingMax, self.outliers[i][1] + self.paddingMax),
+                        5, (0, 0, 255), -1)
 
-        return self.paddedImage
+            return self.paddedImage
+        
+        return image
             
 
     def scanpathVisualization(self):
