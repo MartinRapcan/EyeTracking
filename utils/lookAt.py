@@ -47,5 +47,3 @@ theta_y = np.arcsin(rot_matrix[0, 2])
 # Convert the angles to degrees and print the result
 euler_angles = np.array([theta_x, theta_y, theta_z]) * 180 / np.pi
 print("Euler angles (in degrees): ", euler_angles)
-
-# TODO: addition of 90 degrees to x axis make the result we want

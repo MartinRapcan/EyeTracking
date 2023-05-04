@@ -445,7 +445,6 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
         self.imageFlag = button.text().split(" ")[0]
         if self.clickedItem:
             self.imageClicked(item=self.clickedItem)
-            print("clicked flag: ", self.imageFlag)
         elif self.lastDetectionImage:
             self.__mainWidget.rayRadio.setEnabled(False)
             self.imageClicked(lastImage=self.lastDetectionImage)
@@ -834,7 +833,7 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
             image = cv2.cvtColor(self.visualizeRaycast(self.pointsOnDisplay, planeIntersection, 
                                                        self.cameraPos, eyePosWorld, self.cameraDirsWorld, gazeRay, 
                                                        screenWidth=self.displaySize[0], screenHeight=self.displaySize[1], 
-                                                       rayNumber=index + 1), cv2.COLOR_BGR2RGB)
+                                                       rayNumber=0), cv2.COLOR_BGR2RGB) # rayNumber = index + 1
             
             image = image[80:560, 80:720]
             image = np.ascontiguousarray(image)

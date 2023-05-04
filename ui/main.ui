@@ -68,7 +68,7 @@ border: 1px solid #FFE81F;
    <property name="geometry">
     <rect>
      <x>790</x>
-     <y>70</y>
+     <y>40</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -104,7 +104,7 @@ QPushButton:disabled {
    <property name="geometry">
     <rect>
      <x>990</x>
-     <y>70</y>
+     <y>40</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -136,7 +136,7 @@ background-color: #ccba18;
    <property name="geometry">
     <rect>
      <x>790</x>
-     <y>110</y>
+     <y>70</y>
      <width>200</width>
      <height>25</height>
     </rect>
@@ -158,7 +158,7 @@ color: white;
    <property name="geometry">
     <rect>
      <x>990</x>
-     <y>110</y>
+     <y>70</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -190,9 +190,9 @@ background-color: #ccba18;
    <property name="geometry">
     <rect>
      <x>890</x>
-     <y>200</y>
+     <y>140</y>
      <width>200</width>
-     <height>150</height>
+     <height>100</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -267,7 +267,7 @@ QScrollBar::add-page:vertical {
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 24px;
+font-size: 20px;
 font-weight: bold;
 }</string>
    </property>
@@ -281,10 +281,10 @@ font-weight: bold;
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>870</x>
-     <y>20</y>
-     <width>221</width>
-     <height>31</height>
+     <x>890</x>
+     <y>10</y>
+     <width>200</width>
+     <height>25</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -292,7 +292,7 @@ font-weight: bold;
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 24px;
+font-size: 20px;
 font-weight: bold;
 }</string>
    </property>
@@ -306,10 +306,10 @@ font-weight: bold;
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
-     <x>900</x>
-     <y>140</y>
-     <width>191</width>
-     <height>51</height>
+     <x>890</x>
+     <y>110</y>
+     <width>200</width>
+     <height>25</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -317,7 +317,7 @@ font-weight: bold;
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 24px;
+font-size: 20px;
 font-weight: bold;
 }</string>
    </property>
@@ -354,7 +354,7 @@ font-weight: bold;
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 20px;
+font-size: 18px;
 font-weight: bold;
 }</string>
     </property>
@@ -445,7 +445,7 @@ QScrollBar::add-page:vertical {
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>0</y>
+       <y>-650</y>
        <width>300</width>
        <height>861</height>
       </rect>
@@ -525,20 +525,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -572,8 +572,8 @@ color: white;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="styleSheet">
@@ -632,20 +632,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -719,20 +719,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -806,20 +806,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -893,20 +893,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -980,20 +980,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>10</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1067,20 +1067,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1154,20 +1154,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1241,20 +1241,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1328,20 +1328,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1415,20 +1415,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1502,20 +1502,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1589,20 +1589,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1676,20 +1676,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1763,20 +1763,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1850,20 +1850,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1937,20 +1937,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2024,20 +2024,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2111,20 +2111,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2198,20 +2198,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2350,7 +2350,7 @@ QPushButton:disabled {
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 20px;
+font-size: 18px;
 font-weight: bold;
 }</string>
     </property>
@@ -2364,9 +2364,9 @@ font-weight: bold;
    <widget class="QLabel" name="label_28">
     <property name="geometry">
      <rect>
-      <x>680</x>
+      <x>910</x>
       <y>10</y>
-      <width>300</width>
+      <width>180</width>
       <height>30</height>
      </rect>
     </property>
@@ -2375,7 +2375,7 @@ font-weight: bold;
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 20px;
+font-size: 18px;
 font-weight: bold;
 }</string>
     </property>
@@ -2389,22 +2389,22 @@ font-weight: bold;
    <widget class="QWidget" name="widget_7" native="true">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>50</y>
-      <width>300</width>
-      <height>41</height>
+      <x>910</x>
+      <y>40</y>
+      <width>180</width>
+      <height>36</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>300</width>
-      <height>41</height>
+      <width>0</width>
+      <height>36</height>
      </size>
     </property>
     <property name="maximumSize">
      <size>
       <width>300</width>
-      <height>41</height>
+      <height>36</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -2413,22 +2413,22 @@ font-weight: bold;
     <widget class="QLineEdit" name="focalLength">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>100</x>
        <y>8</y>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -2443,20 +2443,20 @@ color: white;
       <rect>
        <x>0</x>
        <y>8</y>
-       <width>181</width>
-       <height>25</height>
+       <width>91</width>
+       <height>20</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>25</height>
+       <height>20</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>25</height>
+       <height>20</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -2484,20 +2484,20 @@ font-weight: bold;
      <rect>
       <x>345</x>
       <y>50</y>
-      <width>308</width>
-      <height>211</height>
+      <width>280</width>
+      <height>120</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>308</width>
-      <height>180</height>
+      <width>280</width>
+      <height>110</height>
      </size>
     </property>
     <property name="maximumSize">
      <size>
-      <width>308</width>
-      <height>100000</height>
+      <width>280</width>
+      <height>110</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -2584,14 +2584,14 @@ QScrollBar::add-page:vertical {
        <widget class="QWidget" name="widget_24" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -2603,19 +2603,19 @@ QScrollBar::add-page:vertical {
            <x>0</x>
            <y>8</y>
            <width>181</width>
-           <height>25</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2639,20 +2639,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2668,14 +2668,14 @@ color: white;
        <widget class="QWidget" name="widget_25" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -2686,8 +2686,8 @@ color: white;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="styleSheet">
@@ -2703,7 +2703,7 @@ color: white;
            <x>0</x>
            <y>8</y>
            <width>181</width>
-           <height>25</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="styleSheet">
@@ -2728,14 +2728,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_26" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -2746,20 +2746,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2775,19 +2775,19 @@ color: white;
            <x>0</x>
            <y>8</y>
            <width>181</width>
-           <height>25</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2815,14 +2815,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_27" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -2833,20 +2833,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2868,13 +2868,13 @@ color: white;
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2902,14 +2902,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_28" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -2920,20 +2920,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -2989,14 +2989,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_29" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -3007,20 +3007,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3042,13 +3042,13 @@ color: white;
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3076,14 +3076,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_30" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -3094,20 +3094,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>10</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3163,14 +3163,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_31" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -3181,20 +3181,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3210,19 +3210,19 @@ color: white;
            <x>0</x>
            <y>8</y>
            <width>181</width>
-           <height>25</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3250,14 +3250,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_32" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -3268,20 +3268,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3297,19 +3297,19 @@ color: white;
            <x>0</x>
            <y>8</y>
            <width>181</width>
-           <height>25</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3337,14 +3337,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_33" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -3355,20 +3355,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3384,19 +3384,19 @@ color: white;
            <x>0</x>
            <y>8</y>
            <width>181</width>
-           <height>25</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3424,14 +3424,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_34" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -3442,20 +3442,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3471,19 +3471,19 @@ color: white;
            <x>0</x>
            <y>8</y>
            <width>181</width>
-           <height>25</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3511,14 +3511,14 @@ font-weight: bold;
        <widget class="QWidget" name="widget_35" native="true">
         <property name="minimumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>300</width>
-          <height>41</height>
+          <width>280</width>
+          <height>36</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -3529,20 +3529,20 @@ font-weight: bold;
           <rect>
            <x>190</x>
            <y>8</y>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
-           <height>25</height>
+           <width>70</width>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3558,19 +3558,19 @@ color: white;
            <x>0</x>
            <y>8</y>
            <width>181</width>
-           <height>25</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -3635,9 +3635,9 @@ QPushButton:disabled {
    <widget class="QLabel" name="label_42">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>130</y>
-      <width>300</width>
+      <x>700</x>
+      <y>10</y>
+      <width>190</width>
       <height>30</height>
      </rect>
     </property>
@@ -3646,7 +3646,7 @@ QPushButton:disabled {
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 20px;
+font-size: 18px;
 font-weight: bold;
 }</string>
     </property>
@@ -3660,22 +3660,22 @@ font-weight: bold;
    <widget class="QWidget" name="widget_37" native="true">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>170</y>
-      <width>300</width>
+      <x>700</x>
+      <y>40</y>
+      <width>191</width>
       <height>41</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>300</width>
-      <height>41</height>
+      <width>0</width>
+      <height>36</height>
      </size>
     </property>
     <property name="maximumSize">
      <size>
       <width>300</width>
-      <height>41</height>
+      <height>36</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -3684,22 +3684,22 @@ font-weight: bold;
     <widget class="QLineEdit" name="elev">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>120</x>
        <y>8</y>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -3714,20 +3714,20 @@ color: white;
       <rect>
        <x>0</x>
        <y>8</y>
-       <width>181</width>
-       <height>25</height>
+       <width>111</width>
+       <height>20</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>25</height>
+       <height>20</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>25</height>
+       <height>20</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -3753,22 +3753,22 @@ font-weight: bold;
    <widget class="QWidget" name="widget_38" native="true">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>211</y>
-      <width>300</width>
-      <height>41</height>
+      <x>700</x>
+      <y>80</y>
+      <width>190</width>
+      <height>36</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>300</width>
-      <height>41</height>
+      <width>190</width>
+      <height>36</height>
      </size>
     </property>
     <property name="maximumSize">
      <size>
-      <width>300</width>
-      <height>41</height>
+      <width>190</width>
+      <height>36</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -3777,22 +3777,22 @@ font-weight: bold;
     <widget class="QLineEdit" name="azim">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>120</x>
        <y>8</y>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>100</width>
-       <height>25</height>
+       <width>70</width>
+       <height>20</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -3805,22 +3805,22 @@ color: white;
     <widget class="QLabel" name="label_44">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>4</x>
        <y>8</y>
-       <width>181</width>
-       <height>25</height>
+       <width>101</width>
+       <height>20</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>25</height>
+       <height>20</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>25</height>
+       <height>20</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -3844,126 +3844,13 @@ font-weight: bold;
     </widget>
    </widget>
   </widget>
-  <widget class="QWidget" name="widget_36" native="true">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>300</y>
-     <width>384</width>
-     <height>100</height>
-    </rect>
-   </property>
-   <widget class="QRadioButton" name="rawRadio">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>128</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::RightToLeft</enum>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QRadioButton {
-border: none;
-color: #FFE81F;
-background: none;
-font-size: 14px;
-font-weight: bold;
-}</string>
-    </property>
-    <property name="text">
-     <string>Raw image</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="ellipseRadio">
-    <property name="geometry">
-     <rect>
-      <x>128</x>
-      <y>0</y>
-      <width>128</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::RightToLeft</enum>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QRadioButton {
-border: none;
-color: #FFE81F;
-background: none;
-font-size: 14px;
-font-weight: bold;
-}</string>
-    </property>
-    <property name="text">
-     <string>Simple ellipse</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="debugRadio">
-    <property name="geometry">
-     <rect>
-      <x>256</x>
-      <y>0</y>
-      <width>128</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::RightToLeft</enum>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QRadioButton {
-border: none;
-color: #FFE81F;
-background: none;
-font-size: 14px;
-font-weight: bold;
-}</string>
-    </property>
-    <property name="text">
-     <string>2D debug</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="rayRadio">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>50</y>
-      <width>128</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::RightToLeft</enum>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QRadioButton {
-border: none;
-color: #FFE81F;
-font-size: 14px;
-font-weight: bold;
-}
-
-QRadioButton:disabled {
-	color: #87814c;
-}</string>
-    </property>
-    <property name="text">
-     <string>3D debug</string>
-    </property>
-   </widget>
-  </widget>
   <widget class="QLabel" name="label_41">
    <property name="geometry">
     <rect>
-     <x>510</x>
-     <y>20</y>
-     <width>221</width>
-     <height>31</height>
+     <x>890</x>
+     <y>260</y>
+     <width>200</width>
+     <height>25</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -3971,7 +3858,7 @@ QRadioButton:disabled {
 border: none;
 color: #FFE81F;
 background: none;
-font-size: 24px;
+font-size: 20px;
 font-weight: bold;
 }</string>
    </property>
@@ -3985,8 +3872,8 @@ font-weight: bold;
   <widget class="QPushButton" name="heatmap">
    <property name="geometry">
     <rect>
-     <x>630</x>
-     <y>60</y>
+     <x>990</x>
+     <y>290</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -4021,8 +3908,8 @@ QPushButton:disabled {
   <widget class="QPushButton" name="scanpath">
    <property name="geometry">
     <rect>
-     <x>630</x>
-     <y>100</y>
+     <x>890</x>
+     <y>290</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -4057,8 +3944,8 @@ QPushButton:disabled {
   <widget class="QPushButton" name="rawImage">
    <property name="geometry">
     <rect>
-     <x>630</x>
-     <y>140</y>
+     <x>790</x>
+     <y>290</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -4094,7 +3981,7 @@ QPushButton:disabled {
    <property name="geometry">
     <rect>
      <x>890</x>
-     <y>70</y>
+     <y>40</y>
      <width>100</width>
      <height>25</height>
     </rect>
@@ -4123,6 +4010,109 @@ QPushButton:disabled {
    </property>
    <property name="text">
     <string>Calibrate</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="rayRadio">
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>300</y>
+     <width>100</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::RightToLeft</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QRadioButton {
+border: none;
+color: #FFE81F;
+font-size: 14px;
+font-weight: bold;
+}
+
+QRadioButton:disabled {
+	color: #87814c;
+}</string>
+   </property>
+   <property name="text">
+    <string>3D debug</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="debugRadio">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>300</y>
+     <width>100</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::RightToLeft</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QRadioButton {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+   </property>
+   <property name="text">
+    <string>2D debug</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="ellipseRadio">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>300</y>
+     <width>121</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::RightToLeft</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QRadioButton {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+   </property>
+   <property name="text">
+    <string>Simple ellipse</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="rawRadio">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>300</y>
+     <width>100</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::RightToLeft</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QRadioButton {
+border: none;
+color: #FFE81F;
+background: none;
+font-size: 14px;
+font-weight: bold;
+}</string>
+   </property>
+   <property name="text">
+    <string>Raw image</string>
    </property>
   </widget>
  </widget>
