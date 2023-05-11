@@ -44,6 +44,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 
 - Pupil-Labs Pye3d-Detector library
 - Juraj Vincúr
+- Heatmap - [source](https://github.com/TobiasRoeddiger/GazePointHeatMap)
 
 ## Contact
 
