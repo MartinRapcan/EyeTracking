@@ -1234,7 +1234,7 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
                 colors[key] = (r, g, b)
                 t += 1 / (len(self.points_group) - 1)
         else:
-            colors[0] = (255, 255, 255)
+            colors[0] = (self.color1[0], self.color1[1], self.color1[2])
 
         for key in range(0, len(self.points_group)):
             x1 = self.points_group[self.points_group_keys[key]]['middle']['x']

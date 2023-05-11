@@ -115,7 +115,7 @@ if len(points_group) > 1:
         colors[key] = (r, g, b)
         t += 1 / (len(points_group) - 1)
 else:
-    colors[0] = (0, 0, 0)
+    colors[0] = color1
 
 print(colors)
 
