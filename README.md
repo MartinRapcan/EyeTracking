@@ -18,7 +18,6 @@ This repository contains the code for creating an eyetracking system using the P
    pip install -r requirements.txt
    ```
 
-4. Download the Pupil-Labs Pye3d-Detector library from their website and follow the installation instructions.
 
 ## Usage
 
