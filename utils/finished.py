@@ -170,7 +170,7 @@ if __name__ == "__main__":
     detector_3d = Detector3D(camera=camera, long_term_mode=DetectorMode.blocking)
     detector_3d.update_properties(config["detector_3d"])
 
-    img_dir = ".\dataset-Vincur\latest"
+    img_dir = ".\dataset\latest"
 
     pyplot.ion()
     fig = pyplot.figure()

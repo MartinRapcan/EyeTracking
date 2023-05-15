@@ -25,7 +25,7 @@ data = {}
 
 def loop():
     for i in range(121):
-        image = cv2.imread(f"dataset-Vincur/synthetizedImages_no_glint_denoised/example_{i}.png")
+        image = cv2.imread(f"dataset/synthetizedImages_no_glint_denoised/example_{i}.png")
         # read video frame as numpy array
         grayscale_array = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # run 2D detector on video frame
@@ -132,6 +132,6 @@ def saveUVCoords():
             f.write(f'{uv[0]}, {uv[1]}\n')
 
 if __name__ == "__main__":
-    main('dataset-Vincur/synthetizedImages_no_glint_denoised/example_0.png')
+    main('dataset/synthetizedImages_no_glint_denoised/example_0.png')
     calcPoint()
     saveUVCoords()
