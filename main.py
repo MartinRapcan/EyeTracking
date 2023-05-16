@@ -30,16 +30,14 @@ class GlobalSharedClass():
     _instance = None
 
     def __init__(self):
-        # UI Loader
+        # UI LoadercameraPos
         self.loader = QUiLoader()
 
         # Constants
         self.planeNormal = np.array([0, 1, 0])
         self.planeCenter = np.array([0, -500, 0])
         self.planeRot = np.array([0, 0, 180])
-        self.cameraPos = np.array([0, -50, 0])
         self.cameraRot = np.array([90, 0, 0])
-
         self.cameraPos = np.array([20, -50, -10])
         self.cameraRotMat = np.array([
             [0.884918212890625, -0.105633445084095, -0.4536091983318329],
@@ -52,7 +50,6 @@ class GlobalSharedClass():
         self.displayRotMat = self.eulerToRot(self.displayRot)
         self.displayNormalLocal = np.array([0, -1, 0])
         self.displayNormalWorld = self.normalize(self.rotate(self.displayNormalLocal, self.displayRotMat))
-        
         self.cameraDirsWorld = (
             self.rotate(np.array((1, 0, 0)), self.cameraRotMat),
             self.rotate(np.array((0, 1, 0)), self.cameraRotMat),
