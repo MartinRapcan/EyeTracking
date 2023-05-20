@@ -1,5 +1,6 @@
 import csv
 from math import sqrt, acos, degrees
+import numpy as np
 
 file_path = ".\coordinates\eval.csv"
 file = open(file_path, "r")
@@ -7,6 +8,7 @@ reader = csv.reader(file)
 eval_data = list(map(lambda q: (float(q[0]), float(q[1]), float(q[2])), reader))
 ground_truth = []
 distance_diff_milimeters = {"x": [], "z": []}
+distances = []
 degress_diff = []
 origin = (0, 0, 0)
 
@@ -25,6 +27,9 @@ for i in range(len(eval_data)):
     distance_diff_milimeters["x"].append(diff_x)
     distance_diff_milimeters["z"].append(diff_z)
 
+    distance = sqrt(diff_x**2 + diff_z**2)
+    distances.append(distance)
+
     vector1 = [x_gt - origin[0], y_gt - origin[1], z_gt - origin[2]]
     vector2 = [x_ev - origin[0], y_ev - origin[1], z_ev - origin[2]]
 
@@ -41,13 +46,28 @@ for i in range(len(eval_data)):
 
     degress_diff.append(angle_deg)
 
-# # remove outliers that are 75mm or more off
-# for key, value in distance_diff_milimeters.items():
-#     distance_diff_milimeters[key] = list(filter(lambda q: q < 75, value))
+# remove outliers that are 75mm or more off
+for key, value in distance_diff_milimeters.items():
+    distance_diff_milimeters[key] = list(filter(lambda q: q < 75, value))
+
+# remove outliers from distance that are 75mm or more off
+distances = list(filter(lambda q: q < 75, distances))
+
+# remove outliers from degress that are 10° or more off
+degress_diff = list(filter(lambda q: q < 10, degress_diff))
 
 # print average distance difference
 for key, value in distance_diff_milimeters.items():
     print(f"Average Distance Difference ({key}): {sum(value) / len(value):.2f}mm")
 
-# print average degress difference
-print(f"Average Degrees Difference: {sum(degress_diff) / len(degress_diff):.2f}°")
+# print average distance
+print(f"Average Distance: {sum(distances) / len(distances):.2f}mm")
+
+# print accuracy degrees
+print(f"Accuracy Degrees: {sum(degress_diff) / len(degress_diff):.2f}°")
+
+data = np.array(degress_diff)
+std_dev = np.std(data)
+
+# print standard deviation degrees
+print(f"Standard Deviation Degrees: {std_dev:.2f}°")
