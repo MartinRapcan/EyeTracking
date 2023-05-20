@@ -792,7 +792,6 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
 
                 intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
 
-                intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
                 planeIntersection = np.array([0, 0, 0])
                 if (intersectionTime > 0.0):
                     planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
@@ -1062,7 +1061,6 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
 
             intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
 
-            intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
             planeIntersection = np.array([0, 0, 0])
             if (intersectionTime > 0.0):
                 planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
