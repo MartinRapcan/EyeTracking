@@ -1055,7 +1055,6 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
             self.qimg.save(fileName)
 
     def rawToPoint(self):
-        file = open('./coordinates/eval.csv', 'w')
         for i in self.rawData:
             eyePosWorld = self.transform(np.array(self.rawData[i]["sphere"]["center"]), self.cameraPos, self.cameraRotMat)
             gazeRay = self.normalize(self.rotate(self.rawData[i]["circle_3d"]["normal"], self.cameraRotMat))
@@ -1064,16 +1063,13 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
 
             if (intersectionTime > 0.0):
                 planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
-                xxx = planeIntersection[1]
                 planeIntersection = self.transform(planeIntersection, self.displayPos, self.displayRotMat)
-                file.write(f'{planeIntersection[0]}, {xxx}, {planeIntersection[2]}\n')
                 result = self.convert_to_uv(planeIntersection, includeOutliers=True)
                 if result[0] > 1 or result[0] < 0 or result[1] > 1 or result[1] < 0:
                     self.outliers.append(result)
                 else:
                     self.uv_coords.append(result)
 
-        file.close()
 
     def displayImage(self):
         image = None
