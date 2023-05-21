@@ -786,19 +786,16 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
 
             if self.detectionRound == 1:
                 self.rawDataFromDetection[i] = result_3d
-                print(result_3d)
+
                 eyePosWorld = self.transform(np.array(result_3d["sphere"]["center"]), self.cameraPos, self.cameraRotMat)
                 gazeRay = self.normalize(self.rotate(result_3d["circle_3d"]["normal"], self.cameraRotMat))
 
-                print("eyePosWorld: ", eyePosWorld)
-                print("gazeRay: ", gazeRay)
                 intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
 
                 planeIntersection = np.array([0, 0, 0])
                 if (intersectionTime > 0.0):
                     planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
-
-                print("planeIntersection: ", planeIntersection)                
+             
                 self.pointsOnDisplay.append(planeIntersection)
 
             self.displayImage(image)
