@@ -37,7 +37,6 @@ class GlobalSharedClass():
         self.planeNormal = np.array([0, 1, 0])
         self.planeCenter = np.array([0, -500, 0])
         self.planeRot = np.array([0, 0, 180])
-        self.cameraRot = np.array([90, 0, 0])
         self.cameraPos = np.array([20, -50, -10])
         self.cameraRotMat = np.array([
             [0.884918212890625, -0.105633445084095, -0.4536091983318329],
@@ -787,15 +786,19 @@ class MainWindow(FramelessMainWindow, GlobalSharedClass):
 
             if self.detectionRound == 1:
                 self.rawDataFromDetection[i] = result_3d
+                print(result_3d)
                 eyePosWorld = self.transform(np.array(result_3d["sphere"]["center"]), self.cameraPos, self.cameraRotMat)
                 gazeRay = self.normalize(self.rotate(result_3d["circle_3d"]["normal"], self.cameraRotMat))
 
+                print("eyePosWorld: ", eyePosWorld)
+                print("gazeRay: ", gazeRay)
                 intersectionTime = self.intersectPlane(self.displayNormalWorld, self.displayPos, eyePosWorld, gazeRay)
 
                 planeIntersection = np.array([0, 0, 0])
                 if (intersectionTime > 0.0):
                     planeIntersection = self.getPoint([eyePosWorld, gazeRay], intersectionTime)
-                
+
+                print("planeIntersection: ", planeIntersection)                
                 self.pointsOnDisplay.append(planeIntersection)
 
             self.displayImage(image)
