@@ -37,12 +37,23 @@ class GlobalSharedClass():
         self.planeNormal = np.array([0, 1, 0])
         self.planeCenter = np.array([0, -500, 0])
         self.planeRot = np.array([0, 0, 180])
+
+        # for latest dataset
         self.cameraPos = np.array([20, -50, -10])
         self.cameraRotMat = np.array([
             [0.884918212890625, -0.105633445084095, -0.4536091983318329],
             [0.4657464325428009, 0.20070354640483856, 0.8618574738502502],
             [0.0, -0.973940372467041, 0.22680459916591644]
         ])
+
+        # for synthetizedImages_no_glint_denoised dataset
+        # self.cameraPos = np.array([0, -50, 0])
+        # self.cameraRotMat = np.array([
+        #     [1, 0, 0],
+        #     [0, 0, 1],
+        #     [0, 1, 0]
+        # ])
+        
         self.displaySize = (250, 250) #width, height
         self.displayPos = np.array([0, -500, 0])
         self.displayRot = np.array([0, 0, 180])
