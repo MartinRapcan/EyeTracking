@@ -1137,6 +1137,22 @@ class VisualizationWindow(FramelessMainWindow, GlobalSharedClass):
             for i in range(0, len(self.outliersToDraw)):
                 cv2.circle(self.paddedImage, (self.outliers[i][0] + self.paddingMax, self.outliers[i][1] + self.paddingMax),
                         5, (0, 0, 255), -1)
+                
+
+            # x = 1
+            # y = 1
+            # points = []
+            # for i in range(11):
+            #     for j in range(11):
+            #         points.append((x, y))
+            #         y -= 0.1
+
+            #     y = 1
+            #     x -= 0.1
+
+            # for i in range(0, len(points)):
+            #     cv2.circle(self.paddedImage, (int(points[i][0] * self.imageWidth + self.paddingMax), int(points[i][1] * self.imageHeight + self.paddingMax)),
+            #             10, (0, 255, 0), -1)
 
             return self.paddedImage
         
